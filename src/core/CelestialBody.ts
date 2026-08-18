@@ -41,6 +41,8 @@ export class CelestialBody {
   private scale: ScaleManager;
   /** Reused to avoid per-frame allocation. */
   private readonly tmp = new THREE.Vector3();
+  /** Saturn ring bands (child meshes of the star's/sphere's group). */
+  private readonly rings: THREE.Mesh[] = [];
 
   constructor(
     data: CelestialBodyData,
@@ -64,6 +66,47 @@ export class CelestialBody {
     this.group.userData.kind = data.type;
     this.mesh = this.buildMesh();
     this.group.add(this.mesh);
+    // Saturn gets a clearly-visible ring system pinned to its sphere (moves
+    // with the planet); all other bodies have none.
+    if (data.id === "saturn") this.addSaturnRings();
+  }
+
+  /**
+   * Build Saturn's ring system as concentric bands whose inner/outer edges are
+   * proportionally true to the real C / B / A rings (radii given in km, scaled
+   * to hug this body's own render radius). The Cassini division (gap between
+   * B and A) stays visible as the bright band is split from the outer one.
+   */
+  private addSaturnRings(): void {
+    const R = this.scale.radius(this.data.radiusKm);
+    const saturnRadiusKm = 58_232; // dataset radiusKm; used as the scale anchor
+    const toScene = (km: number) => R * (km / saturnRadiusKm);
+    const bands = [
+      // [innerKm, outerKm, color, opacity] — real ring structure
+      [74_860, 92_000, 0xd8c9a0, 0.55], // C ring (faint, inner)
+      [92_000, 117_580, 0xf0e2bb, 0.8], // B ring (bright, widest)
+      [122_170, 136_780, 0xd8c9a0, 0.7], // A ring (outer, past the division)
+    ] as const;
+
+    for (const [innerKm, outerKm, color, opacity] of bands) {
+      const geo = new THREE.RingGeometry(toScene(innerKm), toScene(outerKm), 96, 1);
+      const mat = new THREE.MeshBasicMaterial({
+        color,
+        transparent: true,
+        opacity,
+        side: THREE.DoubleSide,
+        depthWrite: false,
+      });
+      const ring = new THREE.Mesh(geo, mat);
+      ring.name = "saturn-ring";
+      // RingGeometry lies in the XY plane — lay it flat (XZ) then apply the
+      // planet's axial tilt so the rings read as a tilted disc in 3D.
+      ring.rotation.x = -Math.PI / 2;
+      const tilt = (this.data.axialTiltDeg ?? 26.73) * (Math.PI / 180);
+      ring.rotation.z = tilt;
+      this.group.add(ring);
+      this.rings.push(ring);
+    }
   }
 
   private computeSemiMajorAxisKm(): number {
