@@ -3,11 +3,82 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Logarithmic Solar System — real astronomical data compressed with logarithmic scaling." />
+    <meta
+      name="description"
+      content="Logarithmic Solar System — real astronomical data compressed with logarithmic scaling. Select a planet or moon to inspect it."
+    />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>Logarithmic Solar System</title>
   </head>
   <body>
-    <div id="app"></div>
+    <div id="app">
+      <!-- Top-left heading + simulation clock -->
+      <header class="hud-header">
+        <a class="hud-brand" href="#info-panel" aria-label="태양계 시뮬레이션으로 돌아가기">
+          <h1>태양계 <span class="hud-en">Logarithmic Solar System</span></h1>
+        </a>
+        <p id="hud-date" class="hud-date" aria-live="off">시뮬레이션 0일</p>
+      </header>
+
+      <!-- Selected-body info panel -->
+      <aside
+        id="info-panel"
+        class="info-panel empty"
+        role="region"
+        aria-label="선택된 천체 정보"
+      >
+        <p id="info-empty" class="info-empty">천체를 선택하면 정보를 표시합니다.<br />천체를 클릭하거나 ▲▼ / Tab 키로 이동하세요.</p>
+        <div class="info-header-row">
+          <span id="info-swatch" class="info-swatch" aria-hidden="true"></span>
+          <h2 id="info-title-ko" class="info-title"></h2>
+          <span id="info-type" class="info-type"></span>
+        </div>
+        <div id="info-title-en" class="info-title-en"></div>
+        <dl id="info-list" class="info-list"></dl>
+        <p id="info-desc" class="info-desc"></p>
+      </aside>
+
+      <!-- Bottom control bar -->
+      <nav class="control-bar" aria-label="시뮬레이션 제어">
+        <div class="ctrl-group ctrl-group-play">
+          <button id="ctrl-play" class="ctrl-btn play" aria-pressed="true" title="일시정지">
+            ⏸ 일시정지
+          </button>
+        </div>
+
+        <div class="ctrl-group" role="group" aria-label="속도">
+          <span class="ctrl-label">속도</span>
+          <button id="speed-down" class="ctrl-btn icon" aria-label="속도 낮추기">−</button>
+          <span id="speed-value" class="speed-value">1×</span>
+          <button id="speed-up" class="ctrl-btn icon" aria-label="속도 높이기">+</button>
+          <button id="speed-reset" class="ctrl-btn" aria-label="시간과 속도 초기화">초기화</button>
+        </div>
+
+        <div class="ctrl-group">
+          <button id="ctrl-labels" class="ctrl-btn" aria-pressed="true" title="이름표 표시/숨기기">
+            ✕ 레이블 숨기기
+          </button>
+        </div>
+
+        <div class="ctrl-group ctrl-group-focus">
+          <span class="ctrl-label">이동</span>
+          <button id="focus-prev" class="ctrl-btn icon" aria-label="이전 천체">▲</button>
+          <select id="body-select" aria-label="이동할 천체 선택"></select>
+          <button id="focus-next" class="ctrl-btn icon" aria-label="다음 천체">▼</button>
+          <button id="ctrl-home" class="ctrl-btn" title="시작 화면(태양 중심)으로">
+            홈
+          </button>
+        </div>
+      </nav>
+
+      <!-- Screen-reader live region for selection/simulation announcements -->
+      <div id="status" class="sr-only" role="status" aria-live="polite"></div>
+
+      <!-- Keyboard hint (decorative, always visible on wide screens) -->
+      <p class="kb-hint" aria-hidden="true">
+        클릭: 선택 · ▲▼/Tab: 이동 · Space: 재생/일시정지 · Esc: 해제 · 드래그: 회전 · 휠: 확대/축소
+      </p>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

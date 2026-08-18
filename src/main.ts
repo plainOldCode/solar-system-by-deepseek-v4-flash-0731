@@ -1,13 +1,15 @@
 import "./styles.css";
-import { SolarSystem } from "./core/SolarSystem";
+import { AppController } from "./ui/AppController";
 
 /**
  * DS4 Solar System — entry point.
- * Mounts the Three.js scene, lights, logarithmic orbit paths, planetary bodies
- * and their moons, then starts the simulation animation loop.
+ *
+ * The interaction/presentation layer (AppController) attaches to the existing
+ * scene hierarchy in #app: it composes the SolarSystem scene/simulation with
+ * a CameraRig (OrbitControls + focus/follow), on-scene labels, a selection
+ * ring, the info panel, and the control bar.
  */
 const app = document.querySelector<HTMLDivElement>("#app");
 if (app) {
-  app.textContent = "";
-  new SolarSystem(app).start();
+  new AppController(app);
 }

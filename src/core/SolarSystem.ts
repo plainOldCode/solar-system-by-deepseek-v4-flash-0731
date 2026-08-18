@@ -37,6 +37,18 @@ export interface SolarSystemOptions {
   paused?: boolean;
   /** Camera distance/height overrides. */
   cameraDistance?: number;
+  /**
+   * Pre-built camera to use instead of creating one internally. Lets an
+   * interaction layer (e.g. CameraRig) supply the camera that both the rig's
+   * OrbitControls and the scene's renderer share.
+   */
+  camera?: THREE.PerspectiveCamera;
+  /**
+   * Optional per-frame hook called right before rendering, after bodies have
+   * been moved. Lets interaction layers (camera rigs, selection following)
+   * update without owning or forking the animation loop.
+   */
+  onFrame?: (timeDays: number, dtSec: number) => void;
 }
 
 export class SolarSystem {
@@ -50,11 +62,13 @@ export class SolarSystem {
   private lastNowMs = 0;
   private running = false;
   private disposed = false;
+  private readonly opts: SolarSystemOptions;
 
   constructor(
     container: HTMLElement,
     opts: SolarSystemOptions = {},
   ) {
+    this.opts = opts;
     this.views = SolarSystem.buildViews(opts.scale ?? new ScaleManager());
     this.clock = new SimulationClock(
       opts.startSec ?? 0,
@@ -68,7 +82,9 @@ export class SolarSystem {
 
     const width = container.clientWidth || window.innerWidth;
     const height = container.clientHeight || window.innerHeight;
-    this.camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 1000);
+    this.camera =
+      opts.camera ?? new THREE.PerspectiveCamera(50, width / height, 0.1, 1000);
+    this.camera.aspect = width / height; // keep in sync even when injected
     this.positionCamera(opts.cameraDistance);
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -167,6 +183,7 @@ export class SolarSystem {
     const dtSec = Math.max(0, Math.min(dtMs, 250)) / 1000; // clamp big tab-switch jumps
     this.clock.advance(dtSec);
     this.update(this.clock.timeDays);
+    this.opts.onFrame?.(this.clock.timeDays, dtSec);
     this.renderer.render(this.scene, this.camera);
   };
 
