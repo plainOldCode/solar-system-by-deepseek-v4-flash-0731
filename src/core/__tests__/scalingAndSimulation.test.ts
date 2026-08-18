@@ -95,6 +95,35 @@ describe("ScaleManager", () => {
     expect(s.radius(bodyOf("earth").radiusKm)).toBeLessThan(s.radius(696_340));
   });
 
+  it("keeps the Sun dominant and planets clearly sub-dominant (no oversized orbs)", () => {
+    const s = new ScaleManager();
+    const sun = s.radius(bodyOf("sun").radiusKm);
+    const jupiter = s.radius(bodyOf("jupiter").radiusKm);
+    const earth = s.radius(bodyOf("earth").radiusKm);
+    // Sun is unmistakably the largest body.
+    expect(jupiter).toBeLessThan(sun * 0.6);
+    expect(earth).toBeLessThan(sun * 0.5);
+    // Ordering preserved: planets in increasing *real radius* order.
+    const order = [
+      "pluto", "mercury", "mars", "venus", "earth", "neptune", "uranus", "saturn", "jupiter",
+    ];
+    for (let i = 1; i < order.length; i++) {
+      expect(s.radius(bodyOf(order[i]).radiusKm)).toBeGreaterThan(
+        s.radius(bodyOf(order[i - 1]).radiusKm),
+      );
+    }
+    // Every planet stays above the visibility floor.
+    for (const id of order) {
+      expect(s.radius(bodyOf(id).radiusKm)).toBeGreaterThanOrEqual(s.minSceneRadius);
+    }
+  });
+
+  it("tiny moons stay visible via the floor while remaining sub-planet", () => {
+    const s = new ScaleManager();
+    expect(s.radius(bodyOf("phobos").radiusKm)).toBeGreaterThanOrEqual(0.24);
+    expect(s.radius(bodyOf("phobos").radiusKm)).toBeLessThan(s.radius(bodyOf("mercury").radiusKm));
+  });
+
   it("supports linear distance mode", () => {
     const s = new ScaleManager({ distanceScale: "linear", linearDistanceGain: 1e-9 });
     expect(s.distance(AU_KM).toFixed(3)).toBe("0.150");

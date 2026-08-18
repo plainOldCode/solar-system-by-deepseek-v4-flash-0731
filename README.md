@@ -186,16 +186,21 @@ Venus, Earth and Mars visually distinguishable while outer planets stay spread
 out rather than collapsing into a band. The UI and this README both state that
 the active distance representation is **logarithmic**.
 
-### Body size — log by default (independent floor/cap)
+### Body size — log by default, compressed (independent floor/cap)
 ```
-sceneRadius = clamp( sunSceneRadius · log1p(radiusKm) / log1p(696340) , minRadius, maxRadius)
+sceneRadius = clamp( sunSceneRadius · ( log1p(radiusKm) / log1p(696340) )^compression , minRadius, maxRadius)
 ```
-The Sun (`sunSceneRadius = 5.0`) anchors the scale; `log1p` normalization keeps
-the ordering real while lifting Mercury/Pluto/moons above invisibility; a floor
-(`minSceneRadius = 0.25`) and cap (`maxSceneRadius = 10.0`) keep Jupiter/Saturn
-clearly larger than Earth without letting the Sun overwhelm the scene. In the
-UI, body count is the primary load driver, not polygon detail, so the modest
-sphere tessellation keeps it smooth on typical desktop/mobile hardware.
+The Sun (`sunSceneRadius = 2.2`) anchors the scale; `log1p` normalization keeps
+the ordering real while lifting Mercury/Pluto/moons above invisibility. The
+compression exponent (`radiusCompression = 3.0`) then shrinks everything
+smaller than the Sun so planets are clearly sub-dominant and distinguishable
+from one another — Jupiter renders ~57% of the Sun's radius instead of 83%
+(or ~70% of the Sun's *diameter* vs ~165% before), Earth ~28% instead of 65%,
+so bodies read as discrete markers on their orbits rather than as
+Sun-sized orbs. A floor (`minSceneRadius = 0.25`) and cap
+(`maxSceneRadius = 10.0`) guarantee tiny moons stay visible. In the UI, body
+count is the primary load driver, not polygon detail, so the modest sphere
+tessellation keeps it smooth on typical desktop/mobile hardware.
 
 ### Physical vs visualization scale
 Body size and orbital distance deliberately **do not share one uniform physical

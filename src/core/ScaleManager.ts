@@ -36,6 +36,14 @@ export interface ScaleManagerOptions {
 
   /** Scene radius assigned to the Sun sphere (exactly). */
   sunSceneRadius?: number;
+  /**
+   * Radius compression exponent (>1). Applied to the in-[0,1] log-normalized
+   * ratio so planets/moons shrink *toward* the Sun (bodies smaller than the
+   * Sun get disproportionately smaller) while ordering stays monotonic. This
+   * keeps the Sun clearly dominant and planets distinguishable from each
+   * other instead of all collapsing near Sun-sized. Default 3.0.
+   */
+  radiusCompression?: number;
   /** Smallest rendered sphere radius (floor, protects tiny moons). */
   minSceneRadius?: number;
   /** Largest rendered sphere radius (cap, keeps Sun dominant). */
@@ -50,10 +58,11 @@ const DEFAULTS = {
   distanceGain: 5.0,
   distanceFloorKm: 100_000,
   linearDistanceGain: 1e-9,
-  sunSceneRadius: 5.0,
+  sunSceneRadius: 2.2,
+  radiusCompression: 3.0,
   minSceneRadius: 0.25,
   maxSceneRadius: 10.0,
-  linearRadiusGain: 5.0 / 696_340.0, // Sun 696340 km -> 5.0 scene units
+  linearRadiusGain: 2.2 / 696_340.0, // Sun 696340 km -> sunSceneRadius (2.2) scene units
 };
 
 const SUN_RADIUS_KM = 696_340; // reference anchor for log radius scale
@@ -83,6 +92,10 @@ export class ScaleManager {
   }
   get radiusMode(): RadiusScaleMode {
     return this._opts.radiusScale;
+  }
+  /** Configured floor scene radius (visibility floor for tiny moons). */
+  get minSceneRadius(): number {
+    return this._opts.minSceneRadius;
   }
 
   setDistanceMode(mode: DistanceScaleMode): void {
@@ -121,8 +134,12 @@ export class ScaleManager {
       return clampFinite(r * this._opts.linearRadiusGain, low, high);
     }
     // Log radius: normalize log1p(radius) by log1p(Sun) so the Sun maps
-    // exactly to sunSceneRadius. Monotonic increasing, finite for all r>0.
+    // exactly to sunSceneRadius, then raise the in-[0,1] ratio to
+    // `radiusCompression` (≥1) so planets/moons shrink toward the Sun and
+    // stay clearly sub-dominant while ordering stays monotonic. Finite for
+    // all r>0, deterministic, monotonic non-decreasing.
     const ratio = Math.log1p(r) / Math.log1p(SUN_RADIUS_KM);
-    return clampFinite(this._opts.sunSceneRadius * ratio, low, high);
+    const compressed = Math.pow(ratio, this._opts.radiusCompression);
+    return clampFinite(this._opts.sunSceneRadius * compressed, low, high);
   }
 }
