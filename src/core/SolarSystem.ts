@@ -100,6 +100,15 @@ export class SolarSystem {
   ): SolarSystemViews {
     const root = new THREE.Group();
     root.name = "solar-system";
+    // The orbital simulation (orbit.ts orbitalPosition) lays orbits out in the
+    // X–Y plane — planeX along X, planeY along Y, with inclination rotating
+    // that in-plane component toward Z. Rotate the whole scene root −90° about
+    // X so the Y-up axis becomes the orbit-plane normal and the system reads
+    // as a familiar horizontal, plane-like disc instead of an edge-on vertical
+    // plane. Every body, orbit line and moon hangs off `root`, so they all
+    // inherit this reorientation automatically and selection/focus reads each
+    // body's world position through the same transform, keeping tracking exact.
+    root.rotation.x = -Math.PI / 2;
 
     const byId = new Map<string, CelestialBody>();
     const bodies: CelestialBody[] = [];

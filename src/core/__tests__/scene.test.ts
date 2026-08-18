@@ -74,6 +74,36 @@ describe("SolarSystem.buildViews", () => {
     }
   });
 
+  it("default orbital plane is horizontal (XZ), not edge-on vertical (XY)", () => {
+    // Regression for the "default composition must read as a familiar
+    // horizontal, plane-like system" requirement. The pure orbital math emits
+    // orbits in the X–Y plane; SolarSystem reorients the root −90° about X so
+    // the rendered plane is the horizontal X–Z plane. Earth's inclination is
+    // 0.0°, so its orbit ring must be essentially flat and span both X and Z
+    // in world space (not sit in a vertical X–Y disc).
+    const v = SolarSystem.buildViews(new ScaleManager());
+    updateBodyPositions(v, 0);
+    v.root.updateMatrixWorld(true);
+    const earthLine = v.lines.find((l) => l.userData.bodyId === "earth")!;
+    const attr = earthLine.geometry.getAttribute("position") as THREE.BufferAttribute;
+    const p = new THREE.Vector3();
+    let maxAbsY = 0;
+    let maxAbsX = 0;
+    let maxAbsZ = 0;
+    for (let i = 0; i < attr.count; i++) {
+      p.set(attr.getX(i), attr.getY(i), attr.getZ(i));
+      earthLine.localToWorld(p); // applies the root −90°-about-X reorientation
+      maxAbsY = Math.max(maxAbsY, Math.abs(p.y));
+      maxAbsX = Math.max(maxAbsX, Math.abs(p.x));
+      maxAbsZ = Math.max(maxAbsZ, Math.abs(p.z));
+    }
+    const ringR = Math.hypot(attr.getX(0), attr.getY(0), attr.getZ(0));
+    // Horizontal: negligible vertical spread, real spread in X and Z.
+    expect(maxAbsY).toBeLessThan(ringR * 0.05);
+    expect(maxAbsX).toBeGreaterThan(ringR * 0.5);
+    expect(maxAbsZ).toBeGreaterThan(ringR * 0.5);
+  });
+
   it("carries moons along with their planet via parent-child world transforms", () => {
     updateBodyPositions(views, 31);
     views.root.updateMatrixWorld(true);
