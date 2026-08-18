@@ -20,6 +20,7 @@ import { CameraRig } from "../core/CameraRig";
 import { Labels } from "./Labels";
 import { ControlPanel, type ControlPanelHandlers } from "./ControlPanel";
 import { InfoPanel } from "./InfoPanel";
+import { HudVisibility } from "./hudVisibility";
 import { SOLAR_SYSTEM } from "../data/solarSystemData";
 import type { CelestialBody } from "../core/CelestialBody";
 import {
@@ -59,6 +60,7 @@ export class AppController {
   private hoveredId: string | null = null;
   private selectedId: string | null = null;
   private speed = DEFAULT_SPEED_DAYS; // stored in days-per-real-second
+  private labelsDesired = true; // user's independent in-scene label preference
   private ring: THREE.Group | null = null;
 
   constructor(container: HTMLElement) {
@@ -84,10 +86,11 @@ export class AppController {
     this.labels = new Labels(this.system.views.bodies);
     this.info = new InfoPanel();
     this.control = new ControlPanel(this.handlers());
+    new HudVisibility(container, {
+      onVisibilityChange: (visible) => this.applyHudLabels(visible),
+    });
     this.status = document.getElementById("status") as HTMLElement;
     this.clockEl = document.getElementById("hud-date") as HTMLElement;
-
-    // Make the canvas a real, labelled focus target for keyboard users.
     const canvas = this.system.renderer.domElement;
     canvas.tabIndex = 0;
     canvas.setAttribute("role", "img");
@@ -130,9 +133,10 @@ export class AppController {
       onSpeedStep: (d) => this.stepSpeed(d),
       onSpeedReset: () => this.resetSimulation(),
       onToggleLabels: () => {
-        this.labels.setEnabled(!this.labels.enabledState);
-        this.control.setLabelsVisible(this.labels.enabledState);
-        this.announce(this.labels.enabledState ? "이름표 표시" : "이름표 숨김");
+        this.labelsDesired = !this.labels.enabledState;
+        this.labels.setEnabled(this.labelsDesired);
+        this.control.setLabelsVisible(this.labelsDesired);
+        this.announce(this.labelsDesired ? "이름표 표시" : "이름표 숨김");
       },
       onSelectBody: (id) => this.select(id, true),
       onPrevBody: () => this.select(prevSelection(this.selectedId), true),
@@ -342,6 +346,22 @@ export class AppController {
   /** Reflect the running simulation clock in the HUD date read-out. */
   private renderClock(timeDays: number): void {
     this.clockEl.textContent = `시뮬레이션 ${formatSimDays(timeDays)}`;
+  }
+
+  /**
+   * Fold the in-scene name labels in/out when the whole HUD is hidden/shown.
+   * Panels-hidden forcibly hides scene labels (clean core view); restoring the
+   * HUD brings them back to the user's independent label preference.
+   */
+  private applyHudLabels(visible: boolean): void {
+    if (visible) {
+      this.labels.setEnabled(this.labelsDesired);
+      this.control.setLabelsVisible(this.labelsDesired);
+    } else {
+      this.labelsDesired = this.labels.enabledState;
+      this.labels.setEnabled(false);
+      this.control.setLabelsVisible(false);
+    }
   }
 
   private announce(msg: string): void {

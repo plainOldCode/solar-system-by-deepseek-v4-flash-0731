@@ -60,6 +60,17 @@
           </button>
         </div>
 
+        <div class="ctrl-group">
+          <button
+            id="ctrl-panels"
+            class="ctrl-btn"
+            aria-pressed="true"
+            title="패널 숨기기"
+          >
+            패널 숨기기
+          </button>
+        </div>
+
         <div class="ctrl-group ctrl-group-focus">
           <span class="ctrl-label">이동</span>
           <button id="focus-prev" class="ctrl-btn icon" aria-label="이전 천체">▲</button>
@@ -70,6 +81,19 @@
           </button>
         </div>
       </nav>
+
+      <!-- Persistent affordance to restore the HUD after it is hidden.
+           Sits OUTSIDE the hidden group (its own high z-index, own element),
+           so it can never be hidden with the rest of the HUD. -->
+      <button
+        id="show-panels"
+        class="show-panels-btn"
+        hidden
+        aria-label="패널 표시"
+        title="패널 표시"
+      >
+        ☰ 패널 표시
+      </button>
 
       <!-- Screen-reader live region for selection/simulation announcements -->
       <div id="status" class="sr-only" role="status" aria-live="polite"></div>

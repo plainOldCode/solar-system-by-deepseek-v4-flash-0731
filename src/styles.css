@@ -290,6 +290,45 @@ select {
   border: 0;
 }
 
+/* ── Global HUD visibility (Hide/Show Panels) ───────────────────── */
+/* One root class folds the whole 2D HUD group together. The persistent
+   #show-panels affordance is deliberately NOT in this list, so it always
+   survives the collapse (it is toggled by JS, never by this class). */
+#app.hud-hidden .hud-header,
+#app.hud-hidden .info-panel,
+#app.hud-hidden .control-bar,
+#app.hud-hidden .kb-hint {
+  display: none;
+}
+
+/* Persistent Show Panels affordance — high z-index, tucked in a corner so it
+   does not block scene interaction. Only rendered while panels are hidden. */
+.show-panels-btn {
+  position: absolute;
+  right: calc(18px + env(safe-area-inset-right, 0px));
+  bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  z-index: 20;
+  height: 44px;
+  padding: 0 16px;
+  font-size: 14px;
+  color: var(--text);
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 999px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s;
+}
+.show-panels-btn:hover {
+  background: rgba(127, 178, 255, 0.24);
+}
+.show-panels-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 /* ── Responsive (mobile portrait + narrow/landscape) ────────────── */
 /* Both a narrow-width phone and a short-height (landscape) phone trigger the
    compact layout. `--info-panel-bottom` is set dynamically by AppController
@@ -368,7 +407,8 @@ select {
 @media (prefers-reduced-motion: reduce) {
   .ctrl-btn,
   .info-panel,
-  .control-bar {
+  .control-bar,
+  .show-panels-btn {
     transition: none;
   }
 }
