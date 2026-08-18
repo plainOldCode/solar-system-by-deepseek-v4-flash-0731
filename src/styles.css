@@ -25,6 +25,16 @@ body,
     Arial, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
 }
 
+/* Use the dynamic viewport height so the canvas + fixed chrome track mobile
+   browser-chrome shrink (URL bar collapse) instead of a stale 100% measure. */
+@supports (height: 100dvh) {
+  html,
+  body,
+  #app {
+    height: 100dvh;
+  }
+}
+
 #app {
   position: relative;
   display: block;
@@ -41,8 +51,8 @@ canvas {
 /* ── Top-left header ─────────────────────────────────────────────── */
 .hud-header {
   position: absolute;
-  top: 18px;
-  left: 20px;
+  top: calc(18px + env(safe-area-inset-top, 0px));
+  left: calc(20px + env(safe-area-inset-left, 0px));
   z-index: 5;
   pointer-events: none;      /* let clicks pass through to the scene */
   user-select: none;
@@ -78,8 +88,8 @@ canvas {
 /* ── Selected-body info panel ────────────────────────────────────── */
 .info-panel {
   position: absolute;
-  top: 78px;
-  right: 20px;
+  top: calc(78px + env(safe-area-inset-top, 0px));
+  right: calc(20px + env(safe-area-inset-right, 0px));
   z-index: 4;
   width: 300px;
   max-height: calc(100% - 200px);
@@ -171,7 +181,7 @@ canvas {
 .control-bar {
   position: absolute;
   left: 50%;
-  bottom: 18px;
+  bottom: calc(18px + env(safe-area-inset-bottom, 0px));
   transform: translateX(-50%);
   z-index: 6;
   display: flex;
@@ -248,8 +258,8 @@ canvas {
 
 .kb-hint {
   position: absolute;
-  left: 20px;
-  bottom: 20px;
+  left: calc(20px + env(safe-area-inset-left, 0px));
+  bottom: calc(20px + env(safe-area-inset-bottom, 0px));
   z-index: 5;
   margin: 0;
   font-size: 12px;
@@ -280,11 +290,15 @@ select {
   border: 0;
 }
 
-/* ── Responsive (mobile / narrow) ────────────────────────────────── */
-@media (max-width: 760px) {
+/* ── Responsive (mobile portrait + narrow/landscape) ────────────── */
+/* Both a narrow-width phone and a short-height (landscape) phone trigger the
+   compact layout. `--info-panel-bottom` is set dynamically by AppController
+   from the live control-bar geometry (see AppController.controlBarResize) so
+   the info panel always sits clear of the (multi-row wrapping) control bar. */
+@media (max-width: 760px), (max-height: 520px) {
   .hud-header {
-    top: 10px;
-    left: 12px;
+    top: calc(env(safe-area-inset-top, 0px) + 10px);
+    left: calc(env(safe-area-inset-left, 0px) + 12px);
   }
   .hud-header h1 {
     font-size: 17px;
@@ -292,31 +306,62 @@ select {
   .hud-en {
     font-size: 9px;
   }
-  .info-panel {
-    top: auto;
-    right: 10px;
-    bottom: calc(var(--control-h) + 76px);
-    left: 10px;
-    width: auto;
-    max-height: 38vh;
-  }
   .kb-hint {
     display: none;
   }
+
+  /* Info panel: bottom-anchored above the control bar. The exact clearance is
+     measured at runtime so it survives the control bar wrapping to 2+ rows. */
+  .info-panel {
+    top: auto;
+    right: calc(env(safe-area-inset-right, 0px) + 10px);
+    left: calc(env(safe-area-inset-left, 0px) + 10px);
+    width: auto;
+    bottom: var(--info-panel-bottom, 128px);
+    max-height: calc(
+      100dvh - var(--info-panel-bottom, 128px) - 84px
+    );
+  }
+  .info-list {
+    grid-template-columns: max-content 1fr;
+  }
+
+  /* Control bar: keep it a compact single row that scrolls horizontally
+     instead of wrapping tall (the wrapped 2–4-row bar ate up to 22% of the
+     viewport and pushed the info panel off-screen in landscape). */
   .control-bar {
-    bottom: 10px;
-    width: calc(100% - 20px);
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
+    width: calc(100% - 24px);
     max-width: none;
-    justify-content: center;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .control-bar::-webkit-scrollbar {
+    display: none;
   }
   .ctrl-group {
     border-right: none;
+    flex: none;
   }
   .ctrl-group-focus select {
     max-width: 130px;
   }
-  .info-list {
-    grid-template-columns: max-content 1fr;
+
+  /* Touch ergonomics: ≥44px hit targets (Apple 44 / Google 48 guidance). */
+  .ctrl-btn {
+    height: 44px;
+    min-width: 44px;
+    padding: 0 14px;
+  }
+  .ctrl-btn.icon {
+    width: 44px;
+  }
+  .ctrl-group-focus select {
+    height: 44px;
   }
 }
 

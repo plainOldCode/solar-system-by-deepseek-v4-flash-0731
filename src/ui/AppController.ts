@@ -50,6 +50,8 @@ export class AppController {
   private readonly status: HTMLElement;
   private readonly clockEl: HTMLElement;
   private readonly container: HTMLElement;
+  private readonly controlBar: HTMLElement;
+  private readonly barObserver: ResizeObserver | null = null;
 
   private readonly raycaster = new THREE.Raycaster();
   private readonly pointer = new THREE.Vector2();
@@ -102,6 +104,16 @@ export class AppController {
     this.control.setLabelsVisible(true);
     this.bindEvents();
     this.clearSelection(false);
+
+    // Keep the mobile info panel clear of the (wrap-capable) control bar.
+    this.controlBar = document.querySelector(
+      ".control-bar",
+    ) as HTMLElement;
+    this.syncInfoPanelGap();
+    if (typeof ResizeObserver !== "undefined") {
+      this.barObserver = new ResizeObserver(() => this.syncInfoPanelGap());
+      this.barObserver.observe(this.controlBar);
+    }
 
     // Kick off the rAF loop. Without this, renderer.render() is never called
     // and the canvas stays black even though the scene graph is fully built.
@@ -338,15 +350,37 @@ export class AppController {
 
   /* ── resize / teardown ─────────────────────────────────────────── */
 
+  /**
+   * Pin the mobile info panel above the control bar using the live bar
+   * geometry. The control bar wraps to 2+ rows on narrow screens, so a fixed
+   * CSS offset cannot reliably clear it; the actual measured bar top does.
+   * `getBoundingClientRect` already reflects the bar's own bottom offset and
+   * safe-area inset (and its real wrapped height), so this stays correct
+   * through re-wraps, browser-chrome shrink and orientation changes.
+   */
+  private readonly syncInfoPanelGap = (): void => {
+    const bar = this.controlBar;
+    if (!bar) return;
+    const containerRect = this.container.getBoundingClientRect();
+    const barRect = bar.getBoundingClientRect();
+    const bottom = Math.max(containerRect.bottom - barRect.top + 12, 84);
+    document.documentElement.style.setProperty(
+      "--info-panel-bottom",
+      `${bottom}px`,
+    );
+  };
+
   private readonly onResize = (): void => {
     const w = this.container.clientWidth || window.innerWidth;
     const h = this.container.clientHeight || window.innerHeight;
     this.rig.resize(w / h);
     this.system.resize(w, h);
+    this.syncInfoPanelGap();
   };
 
   dispose(): void {
     window.removeEventListener("resize", this.onResize);
+    this.barObserver?.disconnect();
     this.labels.dispose();
     if (this.ring) {
       this.ring.parent?.remove(this.ring);
