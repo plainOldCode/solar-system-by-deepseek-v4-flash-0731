@@ -150,10 +150,18 @@ export class SolarSystem {
     this.camera.lookAt(0, 0, 0);
   }
 
-  /** (Re)size the viewport to the container dimensions. */
-  resize(): void {
-    const w = this.renderer.domElement.clientWidth || window.innerWidth;
-    const h = this.renderer.domElement.clientHeight || window.innerHeight;
+  /**
+   * (Re)size the viewport. Pass the host container's CSS dimensions: reading
+   * the canvas's own clientWidth is wrong because `renderer.setSize` writes an
+   * inline `style.width` on the canvas that overrides the CSS `canvas{width:
+   * 100%}` rule, so the canvas's clientWidth always reflects the last known
+   * pixel size and resizing can never shrink the buffer (it just re-applies
+   * the old size). The AppController, which owns the container, passes the
+   * real CSS dimensions.
+   */
+  resize(width?: number, height?: number): void {
+    const w = width ?? (this.renderer.domElement.clientWidth || window.innerWidth);
+    const h = height ?? (this.renderer.domElement.clientHeight || window.innerHeight);
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(w, h);

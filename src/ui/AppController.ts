@@ -321,7 +321,7 @@ export class AppController {
     const w = this.container.clientWidth || window.innerWidth;
     const h = this.container.clientHeight || window.innerHeight;
     this.rig.resize(w / h);
-    this.system.resize();
+    this.system.resize(w, h);
   };
 
   dispose(): void {
