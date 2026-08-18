@@ -1,0 +1,75 @@
+{
+  "orientation": {
+    "portrait": {
+      "vp": [
+        360,
+        800
+      ],
+      "cw": 360,
+      "ch": 800,
+      "bw": 720,
+      "bh": 1600,
+      "scrollW": 360,
+      "scrollH": 800,
+      "infoBottom": 716,
+      "cbTop": 728
+    },
+    "landscape": {
+      "vp": [
+        844,
+        390
+      ],
+      "cw": 844,
+      "ch": 390,
+      "bw": 1688,
+      "bh": 780,
+      "scrollW": 844,
+      "scrollH": 390,
+      "infoBottom": 306,
+      "cbTop": 318
+    },
+    "overlap": {
+      "infoBottom": 306,
+      "cbTop": 318,
+      "overlap": false
+    }
+  },
+  "resize": {
+    "before": {
+      "vp": [
+        1280,
+        800
+      ],
+      "cw": 1280,
+      "ch": 800,
+      "bw": 1280,
+      "bh": 800,
+      "scrollW": 1280,
+      "scrollH": 800,
+      "infoBottom": 151.59375,
+      "cbTop": 690
+    },
+    "after": {
+      "vp": [
+        900,
+        600
+      ],
+      "cw": 900,
+      "ch": 600,
+      "bw": 900,
+      "bh": 600,
+      "scrollW": 900,
+      "scrollH": 600,
+      "infoBottom": 151.59375,
+      "cbTop": 448
+    },
+    "aspectBefore": 1.6,
+    "aspectAfter": 1.5
+  },
+  "motion": {
+    "hud1": "태양계\nLOGARITHMIC SOLAR SYSTEM\n\n시뮬레이션 1.6일",
+    "hud2": "태양계\nLOGARITHMIC SOLAR SYSTEM\n\n시뮬레이션 3.8일",
+    "clockAdvanced": true
+  },
+  "errors": []
+}
