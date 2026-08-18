@@ -28,9 +28,17 @@ import {
   nextSelection,
   prevSelection,
 } from "./selectionModel";
-import { bodyAlt } from "./format";
+import { bodyAlt, formatSimDays } from "./format";
 
-const SPEED_LADDER = [0.05, 0.1, 0.25, 0.5, 1, 2, 4, 8, 16, 32, 64];
+// Speed ladder in simulated DAYS advanced per real second, per the spec's
+// "1 second = 1 day" time scales. The engine's clock accumulates simulated
+// *seconds*, so each rung is multiplied by 86 400 when pushed into the clock.
+// Rebased off a seconds-per-second multiplier because even the old max (64×)
+// = ~0.0007 days/s made planetary motion unobservable ($8: pick a speed where
+// outer-planet movement is observable).
+const SECONDS_PER_DAY = 86_400;
+const SPEED_LADDER_DAYS = [1, 2, 5, 10, 30, 100, 365, 1000, 3650, 10000];
+const DEFAULT_SPEED_DAYS = 1; // "1 second = 1 day" spec baseline
 const RING_COLOR = 0x7fb2ff;
 
 export class AppController {
@@ -40,6 +48,7 @@ export class AppController {
   private readonly control: ControlPanel;
   private readonly info: InfoPanel;
   private readonly status: HTMLElement;
+  private readonly clockEl: HTMLElement;
   private readonly container: HTMLElement;
 
   private readonly raycaster = new THREE.Raycaster();
@@ -47,7 +56,7 @@ export class AppController {
 
   private hoveredId: string | null = null;
   private selectedId: string | null = null;
-  private speed = 1;
+  private speed = DEFAULT_SPEED_DAYS; // stored in days-per-real-second
   private ring: THREE.Group | null = null;
 
   constructor(container: HTMLElement) {
@@ -60,7 +69,10 @@ export class AppController {
     });
     this.system = new SolarSystem(container, {
       camera: this.rig.camera,
-      onFrame: () => this.rig.update(),
+      onFrame: (timeDays) => {
+        this.rig.update();
+        this.renderClock(timeDays);
+      },
     });
     // OrbitControls must listen on the canvas, not the wrapper container, so
     // real pointer clicks on the control-bar buttons aren't swallowed by
@@ -71,6 +83,7 @@ export class AppController {
     this.info = new InfoPanel();
     this.control = new ControlPanel(this.handlers());
     this.status = document.getElementById("status") as HTMLElement;
+    this.clockEl = document.getElementById("hud-date") as HTMLElement;
 
     // Make the canvas a real, labelled focus target for keyboard users.
     const canvas = this.system.renderer.domElement;
@@ -285,19 +298,19 @@ export class AppController {
   }
 
   private stepSpeed(direction: 1 | -1): void {
-    const idx = SPEED_LADDER.indexOf(this.speed);
+    const idx = SPEED_LADDER_DAYS.indexOf(this.speed);
     const next = Math.min(
-      SPEED_LADDER.length - 1,
+      SPEED_LADDER_DAYS.length - 1,
       Math.max(0, idx + direction),
     );
-    this.speed = SPEED_LADDER[next];
-    this.system.clock.setSpeed(this.speed);
+    this.speed = SPEED_LADDER_DAYS[next];
+    this.system.clock.setSpeed(this.speed * SECONDS_PER_DAY);
     this.applySpeedUI();
   }
 
   private resetSimulation(): void {
-    this.speed = 1;
-    this.system.clock.setSpeed(1);
+    this.speed = DEFAULT_SPEED_DAYS;
+    this.system.clock.setSpeed(this.speed * SECONDS_PER_DAY);
     this.system.clock.reset(0);
     if (this.system.clock.paused) this.system.clock.setPaused(false);
     this.control.setPlaying(true);
@@ -307,8 +320,16 @@ export class AppController {
 
   private applySpeedUI(): void {
     this.control.setSpeedLabel(this.speed);
-    const idx = SPEED_LADDER.indexOf(this.speed);
-    this.control.setSpeedLimits(idx <= 0, idx >= SPEED_LADDER.length - 1);
+    const idx = SPEED_LADDER_DAYS.indexOf(this.speed);
+    this.control.setSpeedLimits(idx <= 0, idx >= SPEED_LADDER_DAYS.length - 1);
+    // Keep the engine clock multiplier in sync with the displayed days/sec:
+    // the clock advances simulated seconds, one civil day = 86 400 of them.
+    this.system.clock.setSpeed(this.speed * SECONDS_PER_DAY);
+  }
+
+  /** Reflect the running simulation clock in the HUD date read-out. */
+  private renderClock(timeDays: number): void {
+    this.clockEl.textContent = `시뮬레이션 ${formatSimDays(timeDays)}`;
   }
 
   private announce(msg: string): void {

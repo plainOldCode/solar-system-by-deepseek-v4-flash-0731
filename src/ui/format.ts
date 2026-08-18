@@ -65,3 +65,19 @@ export function bodyAlt(data: CelestialBodyData): string {
   const type = TYPE_LABEL_KO[data.type] ?? data.type;
   return `${data.nameKo} (${data.nameEn}), ${type}`;
 }
+
+/**
+ * Format elapsed simulation days as a compact, live HUD string. Sub-day
+ * amounts are shown in hours so the read-out visibly ticks even at slow
+ * speeds; once past a day it shows days. Values are clamped to the valid
+ * domain so it never prints NaN/Infinity.
+ */
+export function formatSimDays(days: number): string {
+  if (!Number.isFinite(days) || days < 0) return "0시간";
+  if (days < 1) {
+    const hours = days * 24;
+    return `${hours.toFixed(1)}시간`;
+  }
+  if (days < 100) return `${days.toFixed(1)}일`;
+  return `${Math.round(days).toLocaleString("ko-KR")}일`;
+}

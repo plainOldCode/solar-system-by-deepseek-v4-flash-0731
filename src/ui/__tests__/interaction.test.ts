@@ -7,7 +7,7 @@ import {
   bodyIdFromIntersects,
   focusDistanceFor,
 } from "../selectionModel";
-import { formatBodyInfo, bodyAlt, TYPE_LABEL_KO } from "../format";
+import { formatBodyInfo, bodyAlt, TYPE_LABEL_KO, formatSimDays } from "../format";
 import { labelText } from "../Labels";
 import { SOLAR_SYSTEM } from "../../data/solarSystemData";
 
@@ -116,5 +116,21 @@ describe("Labels", () => {
   it("uses the Korean name for the in-scene tag", () => {
     expect(labelText(jupiter)).toBe("목성");
     expect(labelText(sun)).toBe("태양");
+  });
+});
+
+describe("formatSimDays", () => {
+  it("shows sub-day amounts in hours for a live read-out", () => {
+    expect(formatSimDays(0.25)).toBe("6.0시간");
+    expect(formatSimDays(0)).toBe("0.0시간");
+  });
+  it("shows whole/fractional days once past a day", () => {
+    expect(formatSimDays(1)).toBe("1.0일");
+    expect(formatSimDays(90)).toBe("90.0일");
+  });
+  it("rounds large day counts and never prints NaN", () => {
+    expect(formatSimDays(1000)).toBe("1,000일");
+    expect(formatSimDays(NaN)).toBe("0시간");
+    expect(formatSimDays(-5)).toBe("0시간");
   });
 });

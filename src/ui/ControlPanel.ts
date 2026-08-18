@@ -92,8 +92,10 @@ export class ControlPanel {
     this.playBtn.title = playing ? "시뮬레이션 일시정지" : "시뮬레이션 재생";
   }
 
-  setSpeedLabel(speed: number): void {
-    this.speedValue.textContent = `${speed}×`;
+  setSpeedLabel(daysPerSecond: number): void {
+    // e.g. "1일/초", "3650일/초" — simulated days advanced per real second,
+    // matching the rung's meaning in the speed ladder.
+    this.speedValue.textContent = `${daysPerSecond}일/초`;
   }
 
   setSpeedLimits(atMin: boolean, atMax: boolean): void {
