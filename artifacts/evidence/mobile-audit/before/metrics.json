@@ -1,0 +1,739 @@
+{
+  "label": "before",
+  "generated": "2026-08-18T22:51:37.246Z",
+  "viewports": {
+    "360x800": {
+      "name": "360x800",
+      "pass": {
+        "document not scrollable (overflow hidden)": true,
+        "canvas fills viewport (CSS 100%x100%)": true,
+        "renderer caps DPR at 2": true,
+        "HUD header on-screen": true,
+        "info panel on-screen": true,
+        "control bar on-screen": true,
+        "info panel height within viewport": true
+      },
+      "fail": {
+        "info panel does not overlap control bar": true,
+        "HUD header does not overlap info panel": true
+      },
+      "warnings": [
+        "info panel overlaps control bar",
+        "small hit targets: ctrl-play(83x32), speed-down(34x32), speed-up(34x32), speed-reset(60x32), ctrl-labels(111x32), focus-prev(34x32), body-select(130x32), focus-next(34x32), ctrl-home(37x32)",
+        "POPULATED info panel overlaps control bar"
+      ],
+      "measurements": {
+        "innerW": 360,
+        "innerH": 800,
+        "outerW": 360,
+        "outerH": 800,
+        "dpr": 3,
+        "visualViewport": {
+          "w": 360,
+          "h": 800,
+          "offsetLeft": 0,
+          "offsetTop": 0
+        },
+        "vw": 360,
+        "vh": 800,
+        "bodyScrollW": 360,
+        "bodyScrollH": 800,
+        "docScrollW": 360,
+        "docScrollH": 800,
+        "bodyScrollX": 0,
+        "bodyScrollY": 0,
+        "overflowBody": "hidden",
+        "overflowHtml": "hidden",
+        "safeArea": {
+          "top": "",
+          "right": "",
+          "bottom": "",
+          "left": ""
+        },
+        "canvas": {
+          "bufferW": 720,
+          "bufferH": 1600,
+          "clientW": 360,
+          "clientH": 800,
+          "cssW": "360px",
+          "cssH": "800px",
+          "effectiveDPR": 2
+        },
+        "hud": {
+          "x": 12,
+          "y": 10,
+          "w": 172,
+          "h": 56,
+          "right": 184,
+          "bottom": 66,
+          "top": 10,
+          "left": 12
+        },
+        "infoEmpty": {
+          "x": 10,
+          "y": 598,
+          "w": 340,
+          "h": 74,
+          "right": 350,
+          "bottom": 672,
+          "top": 598.40625,
+          "left": 10
+        },
+        "controlBar": {
+          "x": 10,
+          "y": 614,
+          "w": 340,
+          "h": 176,
+          "right": 350,
+          "bottom": 790,
+          "top": 614,
+          "left": 10
+        },
+        "kbHint": {
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0,
+          "right": 0,
+          "bottom": 0,
+          "top": 0,
+          "left": 0
+        },
+        "controls": [
+          {
+            "id": "ctrl-play",
+            "tag": "BUTTON",
+            "w": 83,
+            "h": 32
+          },
+          {
+            "id": "speed-down",
+            "tag": "BUTTON",
+            "w": 34,
+            "h": 32
+          },
+          {
+            "id": "speed-up",
+            "tag": "BUTTON",
+            "w": 34,
+            "h": 32
+          },
+          {
+            "id": "speed-reset",
+            "tag": "BUTTON",
+            "w": 60,
+            "h": 32
+          },
+          {
+            "id": "ctrl-labels",
+            "tag": "BUTTON",
+            "w": 111,
+            "h": 32
+          },
+          {
+            "id": "focus-prev",
+            "tag": "BUTTON",
+            "w": 34,
+            "h": 32
+          },
+          {
+            "id": "body-select",
+            "tag": "SELECT",
+            "w": 130,
+            "h": 32
+          },
+          {
+            "id": "focus-next",
+            "tag": "BUTTON",
+            "w": 34,
+            "h": 32
+          },
+          {
+            "id": "ctrl-home",
+            "tag": "BUTTON",
+            "w": 37,
+            "h": 32
+          }
+        ],
+        "fonts": {
+          "hudTitle": "17px",
+          "infoTitle": "20px",
+          "ctrlBtn": "13px"
+        },
+        "touchAction": "none",
+        "viewportW": 360,
+        "viewportH": 800
+      },
+      "errors": [],
+      "focusedInfo": {
+        "info": {
+          "left": 10,
+          "right": 350,
+          "top": 433.859375,
+          "bottom": 672
+        },
+        "controlBar": {
+          "left": 10,
+          "right": 350,
+          "top": 614,
+          "bottom": 790
+        },
+        "infoBottom": 672,
+        "cbTop": 614
+      },
+      "checkFocusedOverlap": "OVERLAP",
+      "touchGesture": "ok",
+      "errors_unique": [],
+      "hasErrors": false
+    },
+    "390x844": {
+      "name": "390x844",
+      "pass": {
+        "document not scrollable (overflow hidden)": true,
+        "canvas fills viewport (CSS 100%x100%)": true,
+        "renderer caps DPR at 2": true,
+        "HUD header on-screen": true,
+        "info panel on-screen": true,
+        "control bar on-screen": true,
+        "info panel height within viewport": true
+      },
+      "fail": {
+        "info panel does not overlap control bar": true,
+        "HUD header does not overlap info panel": true
+      },
+      "warnings": [
+        "info panel overlaps control bar",
+        "small hit targets: ctrl-play(83x32), speed-down(34x32), speed-up(34x32), speed-reset(60x32), ctrl-labels(111x32), focus-prev(34x32), body-select(130x32), focus-next(34x32), ctrl-home(37x32)",
+        "POPULATED info panel overlaps control bar"
+      ],
+      "measurements": {
+        "innerW": 390,
+        "innerH": 844,
+        "outerW": 390,
+        "outerH": 844,
+        "dpr": 3,
+        "visualViewport": {
+          "w": 390,
+          "h": 844,
+          "offsetLeft": 0,
+          "offsetTop": 0
+        },
+        "vw": 390,
+        "vh": 844,
+        "bodyScrollW": 390,
+        "bodyScrollH": 844,
+        "docScrollW": 390,
+        "docScrollH": 844,
+        "bodyScrollX": 0,
+        "bodyScrollY": 0,
+        "overflowBody": "hidden",
+        "overflowHtml": "hidden",
+        "safeArea": {
+          "top": "",
+          "right": "",
+          "bottom": "",
+          "left": ""
+        },
+        "canvas": {
+          "bufferW": 780,
+          "bufferH": 1688,
+          "clientW": 390,
+          "clientH": 844,
+          "cssW": "390px",
+          "cssH": "844px",
+          "effectiveDPR": 2
+        },
+        "hud": {
+          "x": 12,
+          "y": 10,
+          "w": 172,
+          "h": 56,
+          "right": 184,
+          "bottom": 66,
+          "top": 10,
+          "left": 12
+        },
+        "infoEmpty": {
+          "x": 10,
+          "y": 642,
+          "w": 370,
+          "h": 74,
+          "right": 380,
+          "bottom": 716,
+          "top": 642.40625,
+          "left": 10
+        },
+        "controlBar": {
+          "x": 10,
+          "y": 700,
+          "w": 370,
+          "h": 134,
+          "right": 380,
+          "bottom": 834,
+          "top": 700,
+          "left": 10
+        },
+        "kbHint": {
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0,
+          "right": 0,
+          "bottom": 0,
+          "top": 0,
+          "left": 0
+        },
+        "controls": [
+          {
+            "id": "ctrl-play",
+            "tag": "BUTTON",
+            "w": 83,
+            "h": 32
+          },
+          {
+            "id": "speed-down",
+            "tag": "BUTTON",
+            "w": 34,
+            "h": 32
+          },
+          {
+            "id": "speed-up",
+            "tag": "BUTTON",
+            "w": 34,
+            "h": 32
+          },
+          {
+            "id": "speed-reset",
+            "tag": "BUTTON",
+            "w": 60,
+            "h": 32
+          },
+          {
+            "id": "ctrl-labels",
+            "tag": "BUTTON",
+            "w": 111,
+            "h": 32
+          },
+          {
+            "id": "focus-prev",
+            "tag": "BUTTON",
+            "w": 34,
+            "h": 32
+          },
+          {
+            "id": "body-select",
+            "tag": "SELECT",
+            "w": 130,
+            "h": 32
+          },
+          {
+            "id": "focus-next",
+            "tag": "BUTTON",
+            "w": 34,
+            "h": 32
+          },
+          {
+            "id": "ctrl-home",
+            "tag": "BUTTON",
+            "w": 37,
+            "h": 32
+          }
+        ],
+        "fonts": {
+          "hudTitle": "17px",
+          "infoTitle": "20px",
+          "ctrlBtn": "13px"
+        },
+        "touchAction": "none",
+        "viewportW": 390,
+        "viewportH": 844
+      },
+      "errors": [],
+      "focusedInfo": {
+        "info": {
+          "left": 10,
+          "right": 380,
+          "top": 477.859375,
+          "bottom": 716
+        },
+        "controlBar": {
+          "left": 10,
+          "right": 380,
+          "top": 700,
+          "bottom": 834
+        },
+        "infoBottom": 716,
+        "cbTop": 700
+      },
+      "checkFocusedOverlap": "OVERLAP",
+      "touchGesture": "ok",
+      "errors_unique": [],
+      "hasErrors": false
+    },
+    "844x390": {
+      "name": "844x390",
+      "pass": {
+        "document not scrollable (overflow hidden)": true,
+        "canvas fills viewport (CSS 100%x100%)": true,
+        "renderer caps DPR at 2": true,
+        "HUD header on-screen": true,
+        "info panel on-screen": true,
+        "control bar on-screen": true,
+        "info panel does not overlap control bar": true,
+        "info panel height within viewport": true
+      },
+      "fail": {
+        "HUD header does not overlap info panel": true
+      },
+      "warnings": [
+        "small hit targets: ctrl-play(83x32), speed-down(34x32), speed-up(34x32), speed-reset(60x32), ctrl-labels(111x32), focus-prev(34x32), body-select(168x32), focus-next(34x32), ctrl-home(37x32)",
+        "POPULATED info panel overlaps control bar"
+      ],
+      "measurements": {
+        "innerW": 844,
+        "innerH": 390,
+        "outerW": 844,
+        "outerH": 390,
+        "dpr": 2,
+        "visualViewport": {
+          "w": 844,
+          "h": 390,
+          "offsetLeft": 0,
+          "offsetTop": 0
+        },
+        "vw": 844,
+        "vh": 390,
+        "bodyScrollW": 844,
+        "bodyScrollH": 390,
+        "docScrollW": 844,
+        "docScrollH": 390,
+        "bodyScrollX": 0,
+        "bodyScrollY": 0,
+        "overflowBody": "hidden",
+        "overflowHtml": "hidden",
+        "safeArea": {
+          "top": "",
+          "right": "",
+          "bottom": "",
+          "left": ""
+        },
+        "canvas": {
+          "bufferW": 1688,
+          "bufferH": 780,
+          "clientW": 844,
+          "clientH": 390,
+          "cssW": "844px",
+          "cssH": "390px",
+          "effectiveDPR": 2
+        },
+        "hud": {
+          "x": 20,
+          "y": 18,
+          "w": 200,
+          "h": 65,
+          "right": 220,
+          "bottom": 83,
+          "top": 18,
+          "left": 20
+        },
+        "infoEmpty": {
+          "x": 524,
+          "y": 78,
+          "w": 300,
+          "h": 74,
+          "right": 824,
+          "bottom": 152,
+          "top": 78,
+          "left": 524
+        },
+        "controlBar": {
+          "x": 211,
+          "y": 238,
+          "w": 422,
+          "h": 134,
+          "right": 633,
+          "bottom": 372,
+          "top": 238,
+          "left": 211
+        },
+        "kbHint": {
+          "x": 20,
+          "y": 354,
+          "w": 448,
+          "h": 16,
+          "right": 468,
+          "bottom": 370,
+          "top": 354,
+          "left": 20
+        },
+        "controls": [
+          {
+            "id": "ctrl-play",
+            "tag": "BUTTON",
+            "w": 83,
+            "h": 32
+          },
+          {
+            "id": "speed-down",
+            "tag": "BUTTON",
+            "w": 34,
+            "h": 32
+          },
+          {
+            "id": "speed-up",
+            "tag": "BUTTON",
+            "w": 34,
+            "h": 32
+          },
+          {
+            "id": "speed-reset",
+            "tag": "BUTTON",
+            "w": 60,
+            "h": 32
+          },
+          {
+            "id": "ctrl-labels",
+            "tag": "BUTTON",
+            "w": 111,
+            "h": 32
+          },
+          {
+            "id": "focus-prev",
+            "tag": "BUTTON",
+            "w": 34,
+            "h": 32
+          },
+          {
+            "id": "body-select",
+            "tag": "SELECT",
+            "w": 168,
+            "h": 32
+          },
+          {
+            "id": "focus-next",
+            "tag": "BUTTON",
+            "w": 34,
+            "h": 32
+          },
+          {
+            "id": "ctrl-home",
+            "tag": "BUTTON",
+            "w": 37,
+            "h": 32
+          }
+        ],
+        "fonts": {
+          "hudTitle": "22px",
+          "infoTitle": "20px",
+          "ctrlBtn": "13px"
+        },
+        "touchAction": "none",
+        "viewportW": 844,
+        "viewportH": 390
+      },
+      "errors": [],
+      "focusedInfo": {
+        "info": {
+          "left": 524,
+          "right": 824,
+          "top": 78,
+          "bottom": 268
+        },
+        "controlBar": {
+          "left": 211,
+          "right": 633,
+          "top": 238,
+          "bottom": 372
+        },
+        "infoBottom": 268,
+        "cbTop": 238
+      },
+      "checkFocusedOverlap": "OVERLAP",
+      "touchGesture": "ok",
+      "errors_unique": [],
+      "hasErrors": false
+    },
+    "1280x800": {
+      "name": "1280x800",
+      "pass": {
+        "document not scrollable (overflow hidden)": true,
+        "canvas fills viewport (CSS 100%x100%)": true,
+        "renderer caps DPR at 2": true,
+        "HUD header on-screen": true,
+        "info panel on-screen": true,
+        "control bar on-screen": true,
+        "info panel does not overlap control bar": true,
+        "info panel height within viewport": true
+      },
+      "fail": {
+        "HUD header does not overlap info panel": true
+      },
+      "warnings": [
+        "small hit targets: ctrl-play(83x32), speed-down(34x32), speed-up(34x32), speed-reset(60x32), ctrl-labels(111x32), focus-prev(34x32), body-select(168x32), focus-next(34x32), ctrl-home(37x32)"
+      ],
+      "measurements": {
+        "innerW": 1280,
+        "innerH": 800,
+        "outerW": 1280,
+        "outerH": 800,
+        "dpr": 1,
+        "visualViewport": {
+          "w": 1280,
+          "h": 800,
+          "offsetLeft": 0,
+          "offsetTop": 0
+        },
+        "vw": 1280,
+        "vh": 800,
+        "bodyScrollW": 1280,
+        "bodyScrollH": 800,
+        "docScrollW": 1280,
+        "docScrollH": 800,
+        "bodyScrollX": 0,
+        "bodyScrollY": 0,
+        "overflowBody": "hidden",
+        "overflowHtml": "hidden",
+        "safeArea": {
+          "top": "",
+          "right": "",
+          "bottom": "",
+          "left": ""
+        },
+        "canvas": {
+          "bufferW": 1280,
+          "bufferH": 800,
+          "clientW": 1280,
+          "clientH": 800,
+          "cssW": "1280px",
+          "cssH": "800px",
+          "effectiveDPR": 1
+        },
+        "hud": {
+          "x": 20,
+          "y": 18,
+          "w": 200,
+          "h": 65,
+          "right": 220,
+          "bottom": 83,
+          "top": 18,
+          "left": 20
+        },
+        "infoEmpty": {
+          "x": 960,
+          "y": 78,
+          "w": 300,
+          "h": 74,
+          "right": 1260,
+          "bottom": 152,
+          "top": 78,
+          "left": 960
+        },
+        "controlBar": {
+          "x": 320,
+          "y": 690,
+          "w": 640,
+          "h": 92,
+          "right": 960,
+          "bottom": 782,
+          "top": 690,
+          "left": 320
+        },
+        "kbHint": {
+          "x": 20,
+          "y": 764,
+          "w": 448,
+          "h": 16,
+          "right": 468,
+          "bottom": 780,
+          "top": 764,
+          "left": 20
+        },
+        "controls": [
+          {
+            "id": "ctrl-play",
+            "tag": "BUTTON",
+            "w": 83,
+            "h": 32
+          },
+          {
+            "id": "speed-down",
+            "tag": "BUTTON",
+            "w": 34,
+            "h": 32
+          },
+          {
+            "id": "speed-up",
+            "tag": "BUTTON",
+            "w": 34,
+            "h": 32
+          },
+          {
+            "id": "speed-reset",
+            "tag": "BUTTON",
+            "w": 60,
+            "h": 32
+          },
+          {
+            "id": "ctrl-labels",
+            "tag": "BUTTON",
+            "w": 111,
+            "h": 32
+          },
+          {
+            "id": "focus-prev",
+            "tag": "BUTTON",
+            "w": 34,
+            "h": 32
+          },
+          {
+            "id": "body-select",
+            "tag": "SELECT",
+            "w": 168,
+            "h": 32
+          },
+          {
+            "id": "focus-next",
+            "tag": "BUTTON",
+            "w": 34,
+            "h": 32
+          },
+          {
+            "id": "ctrl-home",
+            "tag": "BUTTON",
+            "w": 37,
+            "h": 32
+          }
+        ],
+        "fonts": {
+          "hudTitle": "22px",
+          "infoTitle": "20px",
+          "ctrlBtn": "13px"
+        },
+        "touchAction": "none",
+        "viewportW": 1280,
+        "viewportH": 800
+      },
+      "errors": [],
+      "focusedInfo": {
+        "info": {
+          "left": 960,
+          "right": 1260,
+          "top": 78,
+          "bottom": 316.140625
+        },
+        "controlBar": {
+          "left": 320,
+          "right": 960,
+          "top": 690,
+          "bottom": 782
+        },
+        "infoBottom": 316.140625,
+        "cbTop": 690
+      },
+      "checkFocusedOverlap": "ok",
+      "touchGesture": "error: Error: touchscreen.tap: hasTouch must be enabled on the browser context before using the touchscreen.",
+      "errors_unique": [],
+      "hasErrors": false
+    }
+  }
+}
