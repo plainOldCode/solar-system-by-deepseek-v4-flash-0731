@@ -85,6 +85,10 @@ export class AppController {
     this.bindEvents();
     this.clearSelection(false);
 
+    // Kick off the rAF loop. Without this, renderer.render() is never called
+    // and the canvas stays black even though the scene graph is fully built.
+    this.system.start();
+
     window.addEventListener("resize", this.onResize);
   }
 
