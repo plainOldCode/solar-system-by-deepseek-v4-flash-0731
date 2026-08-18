@@ -62,6 +62,11 @@ export class AppController {
       camera: this.rig.camera,
       onFrame: () => this.rig.update(),
     });
+    // OrbitControls must listen on the canvas, not the wrapper container, so
+    // real pointer clicks on the control-bar buttons aren't swallowed by
+    // OrbitControls' pointer capture (which would fire `click` on #app instead
+    // of the button). The canvas only exists after SolarSystem is built.
+    this.rig.rebindToCanvas(this.system.renderer.domElement);
     this.labels = new Labels(this.system.views.bodies);
     this.info = new InfoPanel();
     this.control = new ControlPanel(this.handlers());

@@ -26,7 +26,7 @@ export interface CameraRigOptions {
 
 export class CameraRig {
   readonly camera: THREE.PerspectiveCamera;
-  readonly controls: OrbitControls;
+  controls: OrbitControls;
 
   private homePos: THREE.Vector3;
   private followTarget: { getWorldPosition: (out: THREE.Vector3) => THREE.Vector3 } | null = null;
@@ -60,6 +60,29 @@ export class CameraRig {
   resize(aspect: number): void {
     this.camera.aspect = aspect;
     this.camera.updateProjectionMatrix();
+  }
+
+  /**
+   * Recreate OrbitControls bound to the real WebGL canvas instead of the
+   * wrapper container. When the controls listen on the whole container, any
+   * pointerdown — including on the control-bar buttons — calls
+   * setPointerCapture on the container, which retargets pointerup so the
+   * browser fires `click` on the container rather than the button. Binding to
+   * the canvas (a sibling of the buttons, not their ancestor) keeps drag/zoom
+   * working on the canvas while control buttons keep receiving real clicks.
+   * Preserves the current pivot, zoom limits and damping.
+   */
+  rebindToCanvas(canvas: HTMLElement): void {
+    const prev = this.controls;
+    const next = new OrbitControls(this.camera, canvas);
+    next.enableDamping = prev.enableDamping;
+    next.dampingFactor = prev.dampingFactor;
+    next.minDistance = prev.minDistance;
+    next.maxDistance = prev.maxDistance;
+    next.target.copy(prev.target);
+    this.controls = next;
+    next.update();
+    prev.dispose();
   }
 
   /** Move the orbit pivot to an absolute world position (no follow). */
