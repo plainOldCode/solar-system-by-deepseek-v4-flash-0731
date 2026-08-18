@@ -1,14 +1,13 @@
 import "./styles.css";
+import { SolarSystem } from "./core/SolarSystem";
 
 /**
- * DS4 Solar System — bootstrap entry point.
- * Phase note: later visualization phases replace this minimal stub.
- * This bootstrap only proves the Vite+TS runtime mounts without errors.
+ * DS4 Solar System — entry point.
+ * Mounts the Three.js scene, lights, logarithmic orbit paths, planetary bodies
+ * and their moons, then starts the simulation animation loop.
  */
-function bootstrap(): void {
-  const app = document.querySelector<HTMLDivElement>("#app");
-  if (!app) return;
-  app.textContent = "Booting Logarithmic Solar System…";
+const app = document.querySelector<HTMLDivElement>("#app");
+if (app) {
+  app.textContent = "";
+  new SolarSystem(app).start();
 }
-
-bootstrap();
