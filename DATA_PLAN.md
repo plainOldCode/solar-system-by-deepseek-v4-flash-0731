@@ -1,8 +1,9 @@
 # Astronomical Data Plan
 
-Version: bootstrap phase (t_ced1888d). The actual dataset is populated by the
-"core astronomical data" phase against the sources below — this document is the
-contract for that work and the validation that follows.
+Version: final (t_59e60083). The dataset was populated by the "core
+astronomical data" phase using the sources listed here, and is validated by
+`src/data/validate.ts` + its 29-test suite. It is now the historical contract;
+the README's *Data model, units, and sources* section is the working reference.
 
 ## 1. Required bodies
 

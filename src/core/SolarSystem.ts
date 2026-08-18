@@ -88,7 +88,9 @@ export class SolarSystem {
     this.positionCamera(opts.cameraDistance);
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
-    this.renderer.setPixelRatio(window.devicePixelRatio);
+    // Cap devicePixelRatio at 2 (spec §16) so 4k/retina screens don't render at
+    // 4x the fragment cost — SwiftShader / high-DPR performance stays bounded.
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.setSize(width, height);
     container.appendChild(this.renderer.domElement);
   }
