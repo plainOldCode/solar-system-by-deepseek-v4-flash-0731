@@ -1,0 +1,94 @@
+{
+  "environment": {
+    "userAgent": {},
+    "webgl": {}
+  },
+  "bodies": {
+    "count": 35,
+    "ids": [
+      "sun",
+      "mercury",
+      "venus",
+      "earth",
+      "mars",
+      "jupiter",
+      "saturn",
+      "uranus",
+      "neptune",
+      "pluto",
+      "moon",
+      "phobos",
+      "deimos",
+      "io",
+      "europa",
+      "ganymede",
+      "callisto",
+      "mimas",
+      "enceladus",
+      "tethys",
+      "dione",
+      "rhea",
+      "titan",
+      "iapetus",
+      "miranda",
+      "ariel",
+      "umbriel",
+      "titania",
+      "oberon",
+      "triton",
+      "charon",
+      "styx",
+      "nix",
+      "kerberos",
+      "hydra"
+    ]
+  },
+  "checkpoints": {
+    "canvas mounted & nonzero": true,
+    "dropdown has 35 bodies (sun+8 planets+pluto+25 moons)": true,
+    "sun + 9 named bodies (incl Pluto) selectable": true,
+    "all major moons in dropdown": true,
+    "no console errors": true,
+    "no page errors": true,
+    "no network failures": true,
+    "hud-date advances (animation running)": true
+  },
+  "interactions": {
+    "labelsState": "false",
+    "btnText": "레이블 표시",
+    "playPressed0": "true",
+    "playPressed1": "false",
+    "speedStart": "1일/초",
+    "speedHigh": "365일/초",
+    "speedAfterDown": "100일/초",
+    "speedAfterReset": "1일/초",
+    "saturnInfo": "토성",
+    "titanInfo": "타이탄",
+    "nextTitle": "이아페투스",
+    "homeTitle": "empty",
+    "hud1": "시뮬레이션 2.4일",
+    "hud2": "시뮬레이션 4.6일",
+    "resized": {
+      "bufferW": 900,
+      "bufferH": 600,
+      "clientW": 900,
+      "clientH": 600
+    }
+  },
+  "consoleErrors": [],
+  "pageErrors": [],
+  "networkFailures": [],
+  "canvas": {
+    "mounted": true,
+    "bufferW": 1280,
+    "bufferH": 800,
+    "clientW": 1280,
+    "clientH": 800,
+    "bodyChildren": 1
+  },
+  "webglProbe": {
+    "w": 900,
+    "h": 600,
+    "nonBlackPercent": 0
+  }
+}
