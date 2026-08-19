@@ -45,6 +45,21 @@ describe("SolarSystem.buildViews", () => {
     expect(moonLine.parent).toBe(views.byId.get("earth")!.group);
   });
 
+  it("renders the Sun with a self-illuminated (unlit) material so it is visibly brightest", () => {
+    // Regression: the dark-Sun bug. Sun must be emissive/self-lit — not a lit
+    // Lambert that depends on scene lights — while planets/moons keep a lit
+    // material so the PointLight still illumines them.
+    expect(views.sun.mesh.material).toBeInstanceOf(THREE.MeshBasicMaterial);
+    expect((views.sun.mesh.material as THREE.MeshBasicMaterial).color.getHexString()).toBe("ffdd55");
+    for (const body of views.bodies) {
+      expect(body.mesh.material).not.toBeInstanceOf(THREE.MeshBasicMaterial);
+    }
+    // A representative lit body still has a shading-aware Lambert material.
+    expect(views.byId.get("earth")!.mesh.material).toBeInstanceOf(
+      THREE.MeshLambertMaterial,
+    );
+  });
+
   it("places bodies at their log-scaled orbit radius", () => {
     updateBodyPositions(views, 123.45);
     for (const body of views.bodies) {

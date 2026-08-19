@@ -118,7 +118,14 @@ export class CelestialBody {
   private buildMesh(): THREE.Mesh {
     const sceneRadius = this.scale.radius(this.data.radiusKm);
     const geo = new THREE.SphereGeometry(sceneRadius, 24, 16);
-    const mat = new THREE.MeshLambertMaterial({ color: this.data.displayColor });
+    // Stars are self-illuminated (emissive): render them with an unlit,
+    // full-brightness material so the Sun is visibly the brightest object.
+    // Everything else keeps a lit Lambert material so the Sun's PointLight
+    // still shapes the correct daylight on planets and moons.
+    const mat =
+      this.data.type === "star"
+        ? new THREE.MeshBasicMaterial({ color: this.data.displayColor })
+        : new THREE.MeshLambertMaterial({ color: this.data.displayColor });
     const mesh = new THREE.Mesh(geo, mat);
     mesh.name = this.data.id;
     mesh.userData.bodyId = this.data.id;
