@@ -21,7 +21,13 @@ This project was implemented from the following prompt:
 - Three.js `OrbitControls` for orbit, pan, and zoom.
 - Deterministic body selection: body spheres take precedence over orbit-guide hits.
 - Camera focus for planets, dwarf planet Pluto, and major moons.
-- Korean-primary labels with English secondary names.
+- Procedural star field with a visibility toggle.
+- User-facing distance modes (Log / Linear / Focus) and body-size modes (Enhanced / Relative / Uniform).
+- Orbit, moon, and star-field visibility toggles in the control panel.
+- Hover tooltip showing Korean name, English name, and body type.
+- Selected-body info panel listing real + rendered values, the active distance/size scales, and the body's moons.
+- Visible on-screen scale disclaimer, selected-orbit highlighting with dimmed non-selected guides, and moon-label reveal on parent focus.
+- Korean-primary labels with English secondary names and camera-distance density reduction.
 - Accessible HUD controls, including global **Hide Panels** / **Show Panels** controls.
 - Responsive desktop and mobile layouts with touch-sized controls and safe-area handling.
 - Procedural materials and local assets; no runtime texture download is required.
@@ -160,21 +166,27 @@ The latest verification was performed in a real Chromium/SwiftShader WebGL runti
 
 - Typecheck: passed
 - Production build: passed
-- Vitest: **95/95 tests passed**
+- Vitest: **134/134 tests passed**
 - Desktop and mobile selection checks: passed
 - Earth/Venus identity regression: passed
 - Pluto/Charon/Titan and other moon selection: passed
 - Sun emissive rendering: passed
 - Horizontal orbital composition: passed
 - Hide/Show Panels keyboard restoration: passed
+- Procedural star field with visibility toggle: passed
+- Distance/size scale modes and orbit/moon/star toggles: passed
+- Hover tooltip and full selected-body info panel (real + rendered values, active scales, moon list): passed
+- On-screen scale disclaimer: passed
+- True elliptical orbit guides + selected-orbit highlighting: passed
+- English secondary labels + moon-label reveal on focus: passed
 - Console and page errors: zero in the verification run
 - Git working tree: clean
 
-The final focused selection/size fix is recorded in commit `3228e23`; the Sun emissive fix is recorded in `fa6a673`.
+The final focused selection/size fix is recorded in commit `30ffcaa`; the Sun emissive fix is recorded in `f28284b`. The reviewed feature gaps were implemented across commits `84e7a07` (star field + scale modes + visibility toggles), `ac15c8d` (hover tooltip + info panel), `4731883` (scale disclaimer + EN labels + moon-system reveal), and `55c8019` (true elliptical orbits + selected-orbit highlight).
 
 ## Known limitations
 
-- The default UI prioritizes the logarithmic visualization mode; alternative scale modes are implemented as internal APIs rather than a complete user-facing scale-mode editor.
+- The default UI prioritizes the logarithmic distance and enhanced size modes; the alternative modes are exposed as selectors (Log/Linear/Focus and Enhanced/Relative/Uniform), but there is no general-purpose user-facing scale editor.
 - Procedural star-field density and some advanced planetary surface detail remain intentionally lightweight for browser performance.
 - The model is an educational visualization, not a high-precision ephemeris or physics engine.
 

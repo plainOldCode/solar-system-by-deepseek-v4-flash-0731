@@ -22,7 +22,14 @@
 - Three.js `OrbitControls`를 이용한 회전/이동/확대·축소
 - orbit line보다 천체 mesh를 우선하는 deterministic body selection
 - 행성, 명왕성, 주요 위성 camera focus
-- 한국어 우선 라벨과 영어 보조 이름
+- procedural star field with visibility toggle
+- user-facing distance modes (Log/Linear/Focus) and body-size modes (Enhanced/Relative/Uniform)
+- orbit/moon/star-field visibility toggles
+- hover tooltip (Korean name, English name, body type)
+- selected-body info panel with real + rendered values, active scales, and moon list
+- visible on-screen scale disclaimer
+- selected-orbit highlighting with dimmed non-selected guides and moon-label reveal on parent focus
+- Korean-primary labels with English secondary names and camera-distance density reduction
 - 접근성 있는 HUD와 전체 **Hide Panels / Show Panels** 기능
 - 데스크톱·모바일 responsive layout 및 touch control
 - 외부 texture 다운로드 없이 동작하는 procedural material과 local asset
@@ -161,21 +168,27 @@ src/
 
 - Typecheck: 통과
 - Production build: 통과
-- Vitest: **95/95 통과**
+- Vitest: **134/134 통과**
 - 데스크톱·모바일 body selection: 통과
 - Earth/Venus selection identity regression: 통과
 - Pluto/Charon/Titan 등 위성 선택: 통과
 - 태양 자체 발광 렌더링: 통과
 - 수평형 orbital composition: 통과
 - Hide/Show Panels keyboard 복구: 통과
+- procedural star field + visibility toggle: 통과
+- distance/size scale mode와 orbit/moon/star toggle: 통과
+- hover tooltip과 정보 패널(실측·렌더링 값, 활성 scale, 위성 목록): 통과
+- 화면상 scale disclaimer: 통과
+- 진짜 타원 궤도 가이드 + 선택 궤도 강조: 통과
+- 영어 보조 라벨 + 부모 focus 위성 라벨 노출: 통과
 - console/page error: 검증 run에서 0건
 - Git working tree: clean
 
-최신 selection/size 수정은 `3228e23`, 태양 발광 수정은 `fa6a673` commit에 기록되어 있습니다.
+최신 selection/size 수정은 `30ffcaa`, 태양 발광 수정은 `f28284b` commit에 기록되어 있습니다. 리뷰에서 지적된 기능 격차는 `84e7a07`(star field + scale mode + visibility toggle), `ac15c8d`(hover tooltip + 정보 패널), `4731883`(scale disclaimer + 영어 라벨 + 위성계 노출), `55c8019`(진짜 타원 궤도 + 선택 궤도 강조) commit에서 구현되었습니다.
 
 ## 알려진 제한사항
 
-- 기본 UI는 로그 시각화 모드를 중심으로 제공하며, 대체 scale mode는 내부 API로 구현되어 있지만 완전한 사용자용 scale editor는 아닙니다.
+- 기본 UI는 로그 거리 및 강화 크기 모드를 중심으로 제공하며, 대체 모드는 선택자(Log/Linear/Focus와 Enhanced/Relative/Uniform)로 노출되지만 범용 사용자용 scale editor는 아닙니다.
 - procedural star-field 밀도와 일부 행성 surface detail은 브라우저 성능을 위해 가볍게 구현했습니다.
 - 이 프로젝트는 교육용 시각화이며 고정밀 ephemeris나 물리 엔진이 아닙니다.
 
