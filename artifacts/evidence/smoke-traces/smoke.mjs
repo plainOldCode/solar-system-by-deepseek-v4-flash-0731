@@ -1,7 +1,7 @@
 import { chromium } from "/opt/homebrew/lib/node_modules/playwright/index.mjs";
 
 const BASE = "http://localhost:5173/";
-const EV = "<project-root>/artifacts/evidence";
+const EV = "artifacts/evidence";
 const fs = await import("node:fs");
 
 const out = {

@@ -122,16 +122,16 @@
     }
   ],
   "screenshots": [
-    "<project-root>/artifacts/evidence/integration/desktop-home.png",
-    "<project-root>/artifacts/evidence/integration/desktop-after-drag.png",
-    "<project-root>/artifacts/evidence/integration/desktop-jupiter.png",
-    "<project-root>/artifacts/evidence/integration/desktop-pluto-inclined.png",
-    "<project-root>/artifacts/evidence/integration/desktop-hidden.png",
-    "<project-root>/artifacts/evidence/integration/desktop-restored.png",
-    "<project-root>/artifacts/evidence/integration/mobile-390x844-home.png",
-    "<project-root>/artifacts/evidence/integration/mobile-390x844-restored.png",
-    "<project-root>/artifacts/evidence/integration/mobile-844x390-home.png",
-    "<project-root>/artifacts/evidence/integration/mobile-844x390-restored.png"
+    "artifacts/evidence/integration/desktop-home.png",
+    "artifacts/evidence/integration/desktop-after-drag.png",
+    "artifacts/evidence/integration/desktop-jupiter.png",
+    "artifacts/evidence/integration/desktop-pluto-inclined.png",
+    "artifacts/evidence/integration/desktop-hidden.png",
+    "artifacts/evidence/integration/desktop-restored.png",
+    "artifacts/evidence/integration/mobile-390x844-home.png",
+    "artifacts/evidence/integration/mobile-390x844-restored.png",
+    "artifacts/evidence/integration/mobile-844x390-home.png",
+    "artifacts/evidence/integration/mobile-844x390-restored.png"
   ],
   "desktopErrors": [],
   "rateErrors": [],

@@ -1,5 +1,5 @@
 // Integration verification manifest for the three merged feature commits.
-// Exercises the built app at <project-root>:
+// Exercises the built app from the current project root:
 //   1. default horizontal/plane-like view   2. 3D OrbitControls + inclined orbits
 //   3. body selection/focus                 4. Hide Panels removes HUD + labels
 //   5. persistent Show Panels (keyboard) restores everything
@@ -10,7 +10,7 @@ import { chromium } from "/opt/homebrew/lib/node_modules/playwright/index.mjs";
 import fs from "node:fs";
 import path from "node:path";
 
-const OUT = "<project-root>/artifacts/evidence/integration";
+const OUT = "artifacts/evidence/integration";
 fs.mkdirSync(OUT, { recursive: true });
 const BASE = "http://localhost:5177/";
 const results = { checks: [], screenshots: [] };

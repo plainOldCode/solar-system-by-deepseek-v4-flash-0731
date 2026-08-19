@@ -1,6 +1,6 @@
 # Integration Verification — t_62eaf897
 
-Repo (only): <project-root> (personal workspace, branch main)
+Repo (only): <project-root> (branch main)
 Integrated commits (in order):
 - 599e06d  fix: make default orbital view horizontal and plane-like
 - 6233929  feat: accessible global Hide/Show Panels control for the HUD

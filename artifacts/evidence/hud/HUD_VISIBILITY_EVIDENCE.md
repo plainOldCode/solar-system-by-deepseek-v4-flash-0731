@@ -2,7 +2,7 @@
 
 Card `t_1dad6a8d` — Add accessible global panel visibility controls. This
 evidence was produced against the implementation state on branch `main` in
-`<project-root>` only (`solar-system-demo` was not accessed).
+The canonical project root only (`solar-system-demo` was not accessed).
 
 ## What was implemented
 

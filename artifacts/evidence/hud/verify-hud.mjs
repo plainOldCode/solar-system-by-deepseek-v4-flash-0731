@@ -3,6 +3,7 @@
  * Verifies the accessible Hide/Show Panels control on desktop + mobile.
  */
 import pw from "/opt/homebrew/lib/node_modules/playwright/index.js";
+import path from "node:path";
 const { chromium } = pw;
 
 const RESULTS = [];
@@ -98,13 +99,13 @@ async function runViewport(vp, tag, outPrefix) {
   await page.click("#ctrl-panels");
   await page.waitForTimeout(120);
   await checkHidden(page, tag);
-  await page.screenshot({ path: `<project-root>/artifacts/evidence/hud/${outPrefix}-hidden.png` });
+  await page.screenshot({ path: path.resolve("artifacts/evidence/hud", `${outPrefix}-hidden.png`) });
 
   // keyboard restore via Enter on the focused affordance
   await page.keyboard.press("Enter");
   await page.waitForTimeout(120);
   await checkShown(page, tag);
-  await page.screenshot({ path: `<project-root>/artifacts/evidence/hud/${outPrefix}-shown.png` });
+  await page.screenshot({ path: path.resolve("artifacts/evidence/hud", `${outPrefix}-shown.png`) });
 
   record(tag, "runtime pageerrors == 0", errs.length === 0, `pageerror count=${errs.length}`);
   await ctx.close();

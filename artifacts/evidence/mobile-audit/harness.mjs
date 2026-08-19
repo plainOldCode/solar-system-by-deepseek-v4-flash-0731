@@ -11,7 +11,7 @@ import path from "node:path";
 const OUT = process.argv[2] || "artifacts/evidence/mobile-audit/before";
 const LABEL = process.argv[3] || "before";
 const BASE = process.env.BASE_URL || "http://localhost:5173/";
-const ROOT = "<project-root>";
+const ROOT = process.cwd();
 
 fs.mkdirSync(OUT, { recursive: true });
 
