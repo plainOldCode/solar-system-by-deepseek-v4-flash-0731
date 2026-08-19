@@ -31,15 +31,17 @@ import {
 } from "./selectionModel";
 import { bodyAlt, formatSimDays } from "./format";
 
-// Speed ladder in simulated DAYS advanced per real second, per the spec's
-// "1 second = 1 day" time scales. The engine's clock accumulates simulated
-// *seconds*, so each rung is multiplied by 86 400 when pushed into the clock.
-// Rebased off a seconds-per-second multiplier because even the old max (64×)
-// = ~0.0007 days/s made planetary motion unobservable ($8: pick a speed where
-// outer-planet movement is observable).
+// Speed ladder in simulated DAYS advanced per real second. The engine's clock
+// accumulates simulated *seconds*, so each rung is multiplied by 86 400 when
+// pushed into the clock. The default rate is 0.1 days/sec (one tenth of the
+// previous "1 second = 1 day" spec baseline): applied at the shared, whole-ladder
+// simulation-time level (each rung is exactly one tenth of its old value, and
+// the default is the bottom rung) so real relative orbital-period ratios remain
+// unchanged and pause/play, stepping, reset, displayed values, and date
+// progression all stay coherent with the new default.
 const SECONDS_PER_DAY = 86_400;
-const SPEED_LADDER_DAYS = [1, 2, 5, 10, 30, 100, 365, 1000, 3650, 10000];
-const DEFAULT_SPEED_DAYS = 1; // "1 second = 1 day" spec baseline
+export const SPEED_LADDER_DAYS = [0.1, 0.2, 0.5, 1, 3, 10, 36.5, 100, 365, 1000];
+export const DEFAULT_SPEED_DAYS = 0.1; // one tenth of the original 1 day/sec default
 const RING_COLOR = 0x7fb2ff;
 
 export class AppController {

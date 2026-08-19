@@ -1,0 +1,15 @@
+import { chromium } from "/opt/homebrew/lib/node_modules/playwright/index.mjs";
+const b = await chromium.launch({ headless: true, args: ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--no-sandbox", "--disable-gpu-sandbox"] });
+const p = await b.newPage({ viewport: { width: 1280, height: 800 } });
+await p.goto(process.env.BASE, { waitUntil: "networkidle" });
+await p.waitForSelector("canvas", { timeout: 10000 });
+await p.waitForTimeout(1500);
+const t0 = await p.textContent("#hud-date");
+await p.waitForTimeout(2500);
+const t1 = await p.textContent("#hud-date");
+await p.click("#speed-reset");
+const tR = await p.textContent("#hud-date");
+await p.waitForTimeout(300);
+const tR2 = await p.textContent("#hud-date");
+console.log(JSON.stringify({ t0, t1, tR, tR2 }, null, 2));
+await b.close();
