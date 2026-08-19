@@ -67,7 +67,10 @@ describe("SolarSystem.buildViews", () => {
     // Lambert that depends on scene lights — while planets/moons keep a lit
     // material so the PointLight still illumines them.
     expect(views.sun.mesh.material).toBeInstanceOf(THREE.MeshBasicMaterial);
-    expect((views.sun.mesh.material as THREE.MeshBasicMaterial).color.getHexString()).toBe("ffdd55");
+    const sunMat = views.sun.mesh.material as THREE.MeshBasicMaterial;
+    expect(sunMat.color.getHexString()).toBe("ffdd55");
+    // fog:false — the black space fog must not dim the self-lit Sun.
+    expect(sunMat.fog).toBe(false);
     for (const body of views.bodies) {
       expect(body.mesh.material).not.toBeInstanceOf(THREE.MeshBasicMaterial);
     }

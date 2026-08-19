@@ -127,10 +127,20 @@ export class CelestialBody {
     // full-brightness material so the Sun is visibly the brightest object.
     // Everything else keeps a lit Lambert material so the Sun's PointLight
     // still shapes the correct daylight on planets and moons.
-    const mat =
-      this.data.type === "star"
-        ? new THREE.MeshBasicMaterial({ color: this.data.displayColor })
-        : new THREE.MeshLambertMaterial({ color: this.data.displayColor });
+    let mat: THREE.Material;
+    if (this.data.type === "star") {
+      // self-illuminated full-brightness star. fog:false keeps the black space
+      // fog (camera ~50 units out, fog band 40→90) from dimming the Sun toward
+      // black — it must read as the luminous source, not fade.
+      mat = new THREE.MeshBasicMaterial({
+        color: this.data.displayColor,
+        fog: false,
+      });
+    } else {
+      // Everything else keeps a lit Lambert material so the Sun's PointLight
+      // still shapes the correct daylight on planets and moons.
+      mat = new THREE.MeshLambertMaterial({ color: this.data.displayColor });
+    }
     const mesh = new THREE.Mesh(geo, mat);
     mesh.name = this.data.id;
     mesh.userData.bodyId = this.data.id;

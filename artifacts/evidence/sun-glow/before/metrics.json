@@ -1,0 +1,52 @@
+{
+  "viewports": {
+    "desktop-1280x800": {
+      "home": {
+        "w": 1280,
+        "h": 800,
+        "warmBrightPct": 39.8,
+        "centerLum": 80.7,
+        "glowRingLum": 0.6,
+        "nonBlackPct": 17.1,
+        "planetsLitPct": 5.474,
+        "_logName": "desktop-1280x800 home"
+      },
+      "sunFocused": {
+        "w": 1280,
+        "h": 800,
+        "warmBrightPct": 100,
+        "centerLum": 208.9,
+        "glowRingLum": 208.9,
+        "nonBlackPct": 53.5,
+        "planetsLitPct": 28.889,
+        "_logName": "desktop-1280x800 sun-focused"
+      },
+      "webgl": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)"
+    },
+    "mobile-390x844": {
+      "home": {
+        "w": 780,
+        "h": 1688,
+        "warmBrightPct": 100,
+        "centerLum": 200.8,
+        "glowRingLum": 173.6,
+        "nonBlackPct": 25.3,
+        "planetsLitPct": 6.304,
+        "_logName": "mobile-390x844 home"
+      },
+      "sunFocused": {
+        "w": 780,
+        "h": 1688,
+        "warmBrightPct": 0,
+        "centerLum": 50.1,
+        "glowRingLum": 50.1,
+        "nonBlackPct": 87.6,
+        "planetsLitPct": 68.738,
+        "_logName": "mobile-390x844 sun-focused"
+      },
+      "webgl": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)"
+    }
+  },
+  "errors": [],
+  "pass": true
+}

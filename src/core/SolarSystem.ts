@@ -29,6 +29,7 @@ import {
   STAR_COUNT_MOBILE,
   STAR_FIELD_RADIUS,
 } from "./StarField";
+import { createSunHalo, resizeSunHalo } from "./SunHalo";
 import { SOLAR_SYSTEM } from "../data/solarSystemData";
 
 export interface SolarSystemViews {
@@ -74,6 +75,8 @@ export class SolarSystem {
   readonly renderer: THREE.WebGLRenderer;
   /** Procedural background star field (visibility toggleable). */
   readonly starField: StarField;
+  /** Sun glow halo sprite (child of the Sun's group, camera-facing). */
+  readonly halo: THREE.Sprite;
 
   private readonly scale: ScaleManager;
   private animationId = 0;
@@ -99,6 +102,11 @@ export class SolarSystem {
     this.scene.background = new THREE.Color(0x000000);
     this.scene.add(this.views.root);
     this.addLights();
+    // Glow halo hugging the bright self-lit Sun disc (runtime-only so
+    // `buildViews` stays pure/headless). Tracks the live Sun radius on
+    // scale-mode changes via refreshScale.
+    this.halo = createSunHalo(this.views.sun.sceneRadius);
+    this.views.sun.group.add(this.halo);
 
     // Star field reduced on narrow/mobile viewports (prompt §16). The Points
     // geometry is built once here, never per-frame.
@@ -181,7 +189,9 @@ export class SolarSystem {
   private addLights(): void {
     this.scene.add(new THREE.AmbientLight(0x334466, 0.5));
     // Point light at the Sun illuminates the hemispheres of planets facing it.
-    const sunLight = new THREE.PointLight(0xffffff, 800, 0, 2);
+    // Warmed to the Sun's yellow so lit surfaces read as actual sunlight rather
+    // than pure white.
+    const sunLight = new THREE.PointLight(0xfff1c8, 800, 0, 2);
     sunLight.position.set(0, 0, 0);
     this.scene.add(sunLight);
     // Soft top-down directional light so far sides aren't pure black.
@@ -325,6 +335,9 @@ export class SolarSystem {
    */
   private refreshScale(): void {
     refreshViews(this.views, this.clock.timeDays);
+    // Keep the glow hugging the Sun's live radius across size-mode changes
+    // (e.g. "uniform" shrinks the Sun marker).
+    resizeSunHalo(this.halo, this.views.sun.sceneRadius);
   }
 
   /** Stop the loop and release all GPU resources. */
@@ -333,6 +346,7 @@ export class SolarSystem {
     this.stop();
     this.disposed = true;
     this.starField.dispose();
+    this.halo.material.dispose();
     this.views.sun.dispose();
     for (const body of this.views.bodies) body.dispose();
     for (const line of this.views.lines) OrbitRenderer.dispose(line);
