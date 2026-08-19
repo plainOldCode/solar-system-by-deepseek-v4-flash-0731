@@ -110,6 +110,7 @@ canvas {
 .info-panel.empty .info-header-row,
 .info-panel.empty .info-title-en,
 .info-panel.empty .info-list,
+.info-panel.empty .info-moons,
 .info-panel.empty .info-desc {
   display: none;
 }
@@ -175,6 +176,89 @@ canvas {
   color: #dce6ff;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   padding-top: 10px;
+}
+
+/* ── Info panel \u2014 moon list ─────────────────────────────────────── */
+.info-moons {
+  margin-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 10px;
+}
+.info-moons-title {
+  margin: 0 0 6px;
+  font-size: 13px;
+  color: var(--text-dim);
+  font-weight: 600;
+}
+.info-moons-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 4px;
+  font-size: 13px;
+}
+.info-moons-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: baseline;
+}
+.info-moons-en {
+  color: var(--text-dim);
+  font-size: 11px;
+}
+.info-moons-empty {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+/* ── Hover tooltip overlay ───────────────────────────────────────── */
+/* Fixed overlay that follows the cursor. `pointer-events: none` means it never
+   intercepts clicks or raycasts, so deterministic click selection and OrbitControls
+   drag are completely unaffected by its presence. Hidden by default (the `hidden`
+   attribute plus an explicit rule, since the element sets `display`) and folded
+   in with the rest of the HUD when panels are hidden. */
+.hover-tooltip {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 12;
+  max-width: 220px;
+  padding: 7px 11px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  background: rgba(18, 22, 34, 0.92);
+  border: 1px solid rgba(127, 178, 255, 0.45);
+  border-radius: 9px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  color: var(--text);
+  pointer-events: none;
+}
+.hover-tooltip[hidden] {
+  display: none;
+}
+.hover-tooltip-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+.hover-tooltip-en {
+  font-size: 11px;
+  color: var(--text-dim);
+  letter-spacing: 0.4px;
+}
+.hover-tooltip-type {
+  font-size: 11px;
+  color: #cfe3ff;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: rgba(127, 178, 255, 0.16);
+  border: 1px solid rgba(127, 178, 255, 0.35);
+  margin-top: 2px;
 }
 
 /* ── Bottom control bar ──────────────────────────────────────────── */
@@ -316,7 +400,8 @@ select {
 #app.hud-hidden .hud-header,
 #app.hud-hidden .info-panel,
 #app.hud-hidden .control-bar,
-#app.hud-hidden .kb-hint {
+#app.hud-hidden .kb-hint,
+#app.hud-hidden .hover-tooltip {
   display: none;
 }
 

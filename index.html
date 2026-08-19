@@ -35,8 +35,22 @@
         </div>
         <div id="info-title-en" class="info-title-en"></div>
         <dl id="info-list" class="info-list"></dl>
+        <section class="info-moons" aria-label="위성 목록">
+          <h3 class="info-moons-title">위성 (Moons)</h3>
+          <ul id="info-moons-list" class="info-moons-list"></ul>
+          <p id="info-moons-empty" class="info-moons-empty" hidden>
+            이 천체에는 위성이 없습니다.
+          </p>
+        </section>
         <p id="info-desc" class="info-desc"></p>
       </aside>
+
+      <!-- Hover tooltip overlay (pointer-events: none; never affects selection) -->
+      <div id="hover-tooltip" class="hover-tooltip" hidden>
+        <span id="hover-tooltip-name" class="hover-tooltip-name"></span>
+        <span id="hover-tooltip-en" class="hover-tooltip-en"></span>
+        <span id="hover-tooltip-type" class="hover-tooltip-type"></span>
+      </div>
 
       <!-- Bottom control bar -->
       <nav class="control-bar" aria-label="시뮬레이션 제어">

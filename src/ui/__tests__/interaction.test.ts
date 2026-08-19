@@ -8,9 +8,16 @@ import {
   resolveBodyPick,
   focusDistanceFor,
 } from "../selectionModel";
-import { formatBodyInfo, bodyAlt, TYPE_LABEL_KO, formatSimDays } from "../format";
+import {
+  formatBodyInfo,
+  directMoonsOf,
+  bodyAlt,
+  TYPE_LABEL_KO,
+  formatSimDays,
+} from "../format";
 import { labelText } from "../Labels";
 import { SOLAR_SYSTEM } from "../../data/solarSystemData";
+import { ScaleManager } from "../../core/ScaleManager";
 
 const jupiter = SOLAR_SYSTEM.find((b) => b.id === "jupiter")!;
 const io = SOLAR_SYSTEM.find((b) => b.id === "io")!;
@@ -145,6 +152,74 @@ describe("format body info", () => {
   it("produces descriptive alt text including the kind label", () => {
     expect(bodyAlt(jupiter)).toContain("Jupiter");
     expect(bodyAlt(io)).toContain("위성");
+  });
+});
+
+describe("info panel \u2014 active scales + rendered values", () => {
+  it("shows the default active distance/size scale labels", () => {
+    const info = formatBodyInfo(jupiter, new ScaleManager());
+    expect(info.distanceScale).toBe("로그 스케일");
+    expect(info.sizeScale).toBe("강화 표시 (기본)");
+  });
+
+  it("reflects a supplied non-default scale in the labels", () => {
+    const scale = new ScaleManager({
+      distanceScale: "linear",
+      radiusScale: "relative",
+    });
+    const info = formatBodyInfo(jupiter, scale);
+    expect(info.distanceScale).toBe("선형 스케일");
+    expect(info.sizeScale).toBe("상대 크기");
+    expect(info.distanceRendered).toMatch(/장면 단위$/);
+    expect(info.radiusRendered).toMatch(/장면 단위$/);
+  });
+
+  it("estimates rendered values (scene units) from the live scale, distinct from the real ones", () => {
+    const info = formatBodyInfo(jupiter, new ScaleManager());
+    // Real distance is in AU (dimensionless label); rendered distance has scene units.
+    expect(info.distance).toContain("AU");
+    expect(info.distanceRendered).toContain("장면 단위");
+    expect(info.radius).toMatch(/km$/);
+    expect(info.radiusRendered).toContain("장면 단위");
+  });
+
+  it("shows eccentricity and inclination for Pluto", () => {
+    const info = formatBodyInfo(pluto);
+    expect(info.eccentricity).toMatch(/0\.2\d+/);
+    expect(info.inclination).toMatch(/°$/);
+  });
+});
+
+describe("info panel moon list markup helpers", () => {
+  it("lists a planet's moons in real distance order", () => {
+    const ids = directMoonsOf("jupiter").map((m) => m.id);
+    expect(ids).toEqual(["io", "europa", "ganymede", "callisto"]);
+  });
+
+  it("lists Pluto's five moons in real distance order", () => {
+    const ids = directMoonsOf("pluto").map((m) => m.id);
+    expect(ids).toEqual(["charon", "styx", "nix", "kerberos", "hydra"]);
+  });
+
+  it("returns an empty list for bodies with no moons", () => {
+    expect(directMoonsOf("sun")).toEqual([]);
+    expect(directMoonsOf("mercury")).toEqual([]);
+    expect(directMoonsOf("venus")).toEqual([]);
+    expect(directMoonsOf("io")).toEqual([]);
+  });
+
+  it("covers every dataset moon under exactly one parent", () => {
+    const allMoons = SOLAR_SYSTEM.filter((b) => b.type === "moon");
+    const parents = new Set(
+      SOLAR_SYSTEM.filter((b) => b.parentId).map((b) => b.parentId as string),
+    );
+    // Every moon is reachable through its parent, with no orphans.
+    const idSet = new Set(allMoons.map((m) => m.id));
+    for (const pid of parents) {
+      for (const m of directMoonsOf(pid)) idSet.delete(m.id);
+    }
+    expect(idSet.size).toBe(0);
+    expect(allMoons.length).toBe(25);
   });
 });
 

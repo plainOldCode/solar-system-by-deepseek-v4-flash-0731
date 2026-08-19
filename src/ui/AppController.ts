@@ -22,6 +22,7 @@ import type { DistanceScaleMode, RadiusScaleMode } from "../core/ScaleManager";
 import { Labels } from "./Labels";
 import { ControlPanel, type ControlPanelHandlers } from "./ControlPanel";
 import { InfoPanel } from "./InfoPanel";
+import { HoverTooltip } from "./HoverTooltip";
 import { HudVisibility } from "./hudVisibility";
 import { SOLAR_SYSTEM } from "../data/solarSystemData";
 import type { CelestialBody } from "../core/CelestialBody";
@@ -57,6 +58,7 @@ export class AppController {
   private readonly labels: Labels;
   private readonly control: ControlPanel;
   private readonly info: InfoPanel;
+  private readonly tooltip: HoverTooltip;
   private readonly status: HTMLElement;
   private readonly clockEl: HTMLElement;
   private readonly container: HTMLElement;
@@ -100,6 +102,7 @@ export class AppController {
     this.rig.rebindToCanvas(this.system.renderer.domElement);
     this.labels = new Labels(this.system.views.bodies);
     this.info = new InfoPanel();
+    this.tooltip = new HoverTooltip();
     this.control = new ControlPanel(this.handlers());
     new HudVisibility(container, {
       onVisibilityChange: (visible) => this.applyHudLabels(visible),
@@ -179,7 +182,7 @@ export class AppController {
 
     this.selectedId = id;
     this.hoveredId = id;
-    this.info.setBody(body.data);
+    this.info.setBody(body.data, this.scale);
     this.control.setSelected(body.data);
     this.attachRing(body);
     this.rig.follow(body.group);
@@ -273,9 +276,22 @@ export class AppController {
 
   private readonly onPointerMove = (e: PointerEvent): void => {
     const bodyId = this.pickBody(e as { clientX: number; clientY: number });
+    // Hover tooltip is a desktop (mouse/pen) affordance: touch devices have no
+    // hover, and suppressing it on `touch` avoids an odd overlay flickering
+    // while the user drags to orbit. Either way it stays pointer-events:none
+    // so it never interrupts raycast/click selection.
+    const mouseLike = e.pointerType === "mouse" || e.pointerType === "pen";
     if (bodyId !== this.hoveredId) {
       this.hoveredId = bodyId;
       this.system.renderer.domElement.style.cursor = bodyId ? "pointer" : "grab";
+      if (mouseLike) {
+        const body = bodyId ? this.system.views.byId.get(bodyId) : undefined;
+        if (body) this.tooltip.show(body.data, e.clientX, e.clientY);
+        else this.tooltip.hide();
+      }
+    } else if (bodyId && mouseLike) {
+      // Keep an already-visible tooltip pinned to the moving cursor.
+      this.tooltip.reposition(e.clientX, e.clientY);
     }
   };
 
@@ -391,6 +407,7 @@ export class AppController {
     this.system.setFocusKm(this.focusReferenceKm());
     this.system.setDistanceMode(mode); // (re)builds rings + positions
     this.control.setDistanceMode(mode);
+    this.refreshInfoPanel(); // rendered distance + active-scale rows track the mode
     this.announce(`거리 스케일: ${DISTANCE_MODE_LABEL_KO[mode]}`);
   }
 
@@ -403,7 +420,16 @@ export class AppController {
       if (body) this.attachRing(body); // selection ring tracks the new sphere size
     }
     this.control.setSizeMode(mode);
+    this.refreshInfoPanel(); // rendered radius + active-size rows track the mode
     this.announce(`천체 크기 모드: ${SIZE_MODE_LABEL_KO[mode]}`);
+  }
+
+  /** Re-render the info panel from the selected body and the live scale, so the
+   *  rendered-value and active-scale rows stay accurate after a scale-mode change. */
+  private refreshInfoPanel(): void {
+    if (!this.selectedId) return;
+    const body = this.system.views.byId.get(this.selectedId);
+    if (body) this.info.setBody(body.data, this.scale);
   }
 
   private toggleOrbits(): void {
