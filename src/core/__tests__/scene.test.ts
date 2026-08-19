@@ -6,7 +6,13 @@ import {
   refreshViews,
   setOrbitsVisibility,
   setMoonsVisibility,
+  setMoonEmphasis,
 } from "../SolarSystem";
+import {
+  ORBIT_LINE_OPACITY,
+  MOON_ORBIT_FAINT_OPACITY,
+  MOON_ORBIT_EMPHASIZED_OPACITY,
+} from "../OrbitRenderer";
 import { ScaleManager, AU_KM } from "../ScaleManager";
 import { SOLAR_SYSTEM } from "../../data/solarSystemData";
 import type { CelestialBodyData } from "../../data/types";
@@ -202,5 +208,41 @@ describe("SolarSystem scale refresh + visibility toggles", () => {
     }
     setMoonsVisibility(views, true);
     for (const body of views.bodies) expect(body.group.visible).toBe(true);
+  });
+
+  it("setMoonEmphasis fades all moon orbits and emphasizes only the focused system", () => {
+    const views = SolarSystem.buildViews(new ScaleManager());
+    // Focus Jupiter: its moons brighten, everyone else's stay faint.
+    setMoonEmphasis(views, "jupiter");
+    for (const line of views.lines) {
+      const owner = views.byId.get(line.userData.bodyId as string)!;
+      if (owner.data.type !== "moon") continue;
+      const op = (line.material as THREE.LineBasicMaterial).opacity;
+      expect(op).toBe(
+        owner.data.parentId === "jupiter"
+          ? MOON_ORBIT_EMPHASIZED_OPACITY
+          : MOON_ORBIT_FAINT_OPACITY,
+      );
+    }
+    // Clearing focus drops every moon orbit back to faint.
+    setMoonEmphasis(views, null);
+    for (const line of views.lines) {
+      const owner = views.byId.get(line.userData.bodyId as string)!;
+      if (owner.data.type === "moon") {
+        expect((line.material as THREE.LineBasicMaterial).opacity).toBe(
+          MOON_ORBIT_FAINT_OPACITY,
+        );
+      }
+    }
+  });
+
+  it("setMoonEmphasis never touches heliocentric (planet/dwarf) line opacity", () => {
+    const views = SolarSystem.buildViews(new ScaleManager());
+    setMoonEmphasis(views, "earth");
+    const earthLine = views.lines.find((l) => l.userData.bodyId === "earth")!;
+    const plutoLine = views.lines.find((l) => l.userData.bodyId === "pluto")!;
+    // Planet/dwarf lines keep their original guide opacity (not faint/emphasized).
+    expect((earthLine.material as THREE.LineBasicMaterial).opacity).toBe(ORBIT_LINE_OPACITY);
+    expect((plutoLine.material as THREE.LineBasicMaterial).opacity).toBe(ORBIT_LINE_OPACITY);
   });
 });

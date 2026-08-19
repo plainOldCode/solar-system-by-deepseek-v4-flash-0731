@@ -15,6 +15,10 @@ import { SimulationClock } from "./SimulationClock";
 import { CelestialBody } from "./CelestialBody";
 import { OrbitRenderer } from "./OrbitRenderer";
 import {
+  MOON_ORBIT_FAINT_OPACITY,
+  MOON_ORBIT_EMPHASIZED_OPACITY,
+} from "./OrbitRenderer";
+import {
   StarField,
   STAR_COUNT,
   STAR_COUNT_MOBILE,
@@ -285,6 +289,18 @@ export class SolarSystem {
   }
 
   /**
+   * Planetary-system detail behavior: when a planetary system is focused
+   * (`systemId` = the planet/dwarf whose moons to expose, or null), its moon
+   * orbit lines are emphasized (brighter) while every other moon orbit fades
+   * to faint. This is what "exposes a selected planet and its moons" — in
+   * concert with matching moon-label reveal — without disturbing the overall
+   * composition (heliocentric lines, scale modes, and the Sun are untouched).
+   */
+  setMoonEmphasis(systemId: string | null): void {
+    setMoonEmphasis(this.views, systemId);
+  }
+
+  /**
    * Rebuild all bodies and rings for the live scale (called after any
    * scale-mode or focus change). Keeps the body-sphere/ring coincidence and
    * re-positions every body at the current simulated time.
@@ -364,5 +380,26 @@ export function setMoonsVisibility(
   for (const line of views.lines) {
     const owner = views.byId.get(line.userData.bodyId as string);
     if (owner?.data.type === "moon") line.visible = visible;
+  }
+}
+
+/**
+ * Pure, headless-testable companion of `SolarSystem.setMoonEmphasis`: fades
+ * every moon orbit to faint and emphasizes (brightens) those belonging to
+ * `systemId`. Heliocentric (planet/dwarf) lines are never touched, so scale
+ * modes and the overall composition are preserved. Pass null to fade all.
+ */
+export function setMoonEmphasis(
+  views: SolarSystemViews,
+  systemId: string | null,
+): void {
+  for (const line of views.lines) {
+    const owner = views.byId.get(line.userData.bodyId as string);
+    if (!owner || owner.data.type !== "moon") continue;
+    const on = systemId != null && owner.data.parentId === systemId;
+    OrbitRenderer.setOpacity(
+      line,
+      on ? MOON_ORBIT_EMPHASIZED_OPACITY : MOON_ORBIT_FAINT_OPACITY,
+    );
   }
 }

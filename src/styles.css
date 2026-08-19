@@ -261,6 +261,47 @@ canvas {
   margin-top: 2px;
 }
 
+/* ── Scale disclaimer (required visible element, §14) ───────────── */
+/* Centered pill just below the top edge: clearly present on both desktop and
+   mobile, but tucked out of the way so it never blocks the scene, the header
+   (top-left) or the info panel (top-right). pointer-events:none so it never
+   intercepts raycasts/clicks. */
+.scale-disclaimer {
+  position: absolute;
+  top: calc(18px + env(safe-area-inset-top, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  max-width: min(680px, calc(100% - 24px));
+  padding: 6px 12px;
+  background: rgba(10, 16, 28, 0.7);
+  border: 1px solid rgba(150, 175, 255, 0.25);
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--text-dim);
+  backdrop-filter: blur(6px);
+  pointer-events: none;
+  user-select: none;
+  text-align: center;
+}
+.scale-disclaimer-badge {
+  flex: none;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(127, 178, 255, 0.22);
+  border: 1px solid rgba(127, 178, 255, 0.45);
+  color: #cfe3ff;
+  white-space: nowrap;
+}
+
 /* ── Bottom control bar ──────────────────────────────────────────── */
 .control-bar {
   position: absolute;
@@ -401,7 +442,8 @@ select {
 #app.hud-hidden .info-panel,
 #app.hud-hidden .control-bar,
 #app.hud-hidden .kb-hint,
-#app.hud-hidden .hover-tooltip {
+#app.hud-hidden .hover-tooltip,
+#app.hud-hidden .scale-disclaimer {
   display: none;
 }
 
@@ -447,6 +489,20 @@ select {
     font-size: 17px;
   }
   .hud-en {
+    font-size: 9px;
+  }
+
+  /* Compact scale disclaimer, clearing the top-left header block (title/en/
+     date stack is ~60px tall) so they never overlap on narrow screens. */
+  .scale-disclaimer {
+    top: calc(env(safe-area-inset-top, 0px) + 68px);
+    font-size: 10.5px;
+    gap: 6px;
+    padding: 5px 10px;
+    border-radius: 12px;
+    max-width: calc(100% - 20px);
+  }
+  .scale-disclaimer-badge {
     font-size: 9px;
   }
   .kb-hint {

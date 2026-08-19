@@ -93,6 +93,7 @@ export class AppController {
       onFrame: (timeDays) => {
         this.rig.update();
         this.renderClock(timeDays);
+        this.updateLabelDensity();
       },
     });
     // OrbitControls must listen on the canvas, not the wrapper container, so
@@ -101,6 +102,9 @@ export class AppController {
     // of the button). The canvas only exists after SolarSystem is built.
     this.rig.rebindToCanvas(this.system.renderer.domElement);
     this.labels = new Labels(this.system.views.bodies);
+    // Full-view default: every moon orbit starts faint (focused-system reveal
+    // is applied on selection) and no moon labels show until a system is focused.
+    this.system.setMoonEmphasis(null);
     this.info = new InfoPanel();
     this.tooltip = new HoverTooltip();
     this.control = new ControlPanel(this.handlers());
@@ -182,6 +186,8 @@ export class AppController {
 
     this.selectedId = id;
     this.hoveredId = id;
+    this.labels.setSelection(id); // reveal the focused system's moon labels
+    this.system.setMoonEmphasis(this.systemOf(id)); // emphasize its moon orbits
     this.info.setBody(body.data, this.scale);
     this.control.setSelected(body.data);
     this.attachRing(body);
@@ -215,6 +221,8 @@ export class AppController {
   private clearSelection(home: boolean): void {
     this.selectedId = null;
     this.hoveredId = null;
+    this.labels.setSelection(null); // hide moon labels until a system is focused
+    this.system.setMoonEmphasis(null); // drop every moon orbit back to faint
     this.info.setBody(null);
     this.control.setSelected(null);
     if (this.ring) {
@@ -452,6 +460,32 @@ export class AppController {
     this.system.setStarsVisible(this.starsVisible);
     this.control.setStarsVisible(this.starsVisible);
     this.announce(this.starsVisible ? "별 필드 표시" : "별 필드 숨김");
+  }
+
+  /**
+   * The planetary "system" a selected body belongs to (used to expose its
+   * moons): a selected moon belongs to its parent planet/dwarf, everything
+   * else is its own system. Returns null when nothing resolvable.
+   */
+  private systemOf(id: string | null): string | null {
+    if (!id) return null;
+    const body = this.system.views.byId.get(id);
+    if (!body) return null;
+    if (body.data.type === "moon" && body.data.parentId) {
+      return body.data.parentId;
+    }
+    return id;
+  }
+
+  /**
+   * Label density reduction (§11): fade the in-scene labels toward their
+   * opacity floor as the camera pulls away, so a broad view stays legible
+   * rather than overcrowded. Zooming back toward a body restores full opacity.
+   */
+  private updateLabelDensity(): void {
+    const d = this.rig.camera.position.distanceTo(this.rig.controls.target);
+    const far = THREE.MathUtils.clamp((d - 8) / 55, 0, 1);
+    this.labels.setCrowdFade(far);
   }
 
   /**

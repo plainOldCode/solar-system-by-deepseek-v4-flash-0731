@@ -52,6 +52,17 @@
         <span id="hover-tooltip-type" class="hover-tooltip-type"></span>
       </div>
 
+      <!-- Required visible scale disclaimer (§14): the scene does not use one
+           physical scale — distances and sizes are mode-dependent. Rolled into
+           the HUD group so Hide/Show Panels folds it away with the rest. -->
+      <div id="scale-disclaimer" class="scale-disclaimer" role="note">
+        <span class="scale-disclaimer-badge">스케일 주의</span>
+        <span class="scale-disclaimer-text">
+          거리·크기는 실제 비율이 아니며, 선택한 모드(로그·선형·포커스 거리 /
+          강화·상대·균일 크기)에 따라 화면상 배치가 달라집니다.
+        </span>
+      </div>
+
       <!-- Bottom control bar -->
       <nav class="control-bar" aria-label="시뮬레이션 제어">
         <div class="ctrl-group ctrl-group-play">

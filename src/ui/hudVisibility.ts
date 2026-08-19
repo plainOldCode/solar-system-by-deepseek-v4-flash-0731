@@ -34,6 +34,7 @@ export const HIDDEN_TARGETS = [
   ".info-panel",
   ".control-bar",
   ".kb-hint",
+  ".scale-disclaimer",
 ] as const;
 
 export function togglePanelVisibility(

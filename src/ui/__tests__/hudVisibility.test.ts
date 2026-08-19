@@ -30,8 +30,14 @@ describe("hudVisibility semantics", () => {
     expect(affordanceLabel(true)).toBe("패널 숨기기");
   });
 
-  it("hiding collapses header, panels, control bar and hint as a group", () => {
-    for (const s of [".hud-header", ".info-panel", ".control-bar", ".kb-hint"]) {
+  it("hiding collapses header, panels, control bar, hint and disclaimer as a group", () => {
+    for (const s of [
+      ".hud-header",
+      ".info-panel",
+      ".control-bar",
+      ".kb-hint",
+      ".scale-disclaimer",
+    ]) {
       expect(HIDDEN_TARGETS).toContain(s);
     }
   });

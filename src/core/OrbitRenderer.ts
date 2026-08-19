@@ -16,10 +16,18 @@ import { orbitalPosition, type OrbitParams } from "./orbit";
 
 /** Number of segments used to tessellate an orbit path. */
 export const ORBIT_SEGMENTS = 256;
-/** Opacity of the orbit lines (fainter than the bodies so they read as guides). */
+/** Opacity of the planet/dwarf orbit lines (fainter than the bodies so they read as guides). */
 export const ORBIT_LINE_OPACITY = 0.35;
 /** Default orbit line colour (a dim blue-grey). */
 export const ORBIT_COLOR = "#7788aa";
+/**
+ * Opacity of moon orbit lines when their parent system is NOT focused (§5/§13:
+ * "hide or greatly reduce the opacity of moon orbit lines in the full view").
+ * Faint but still present so moons read as belonging to their planet.
+ */
+export const MOON_ORBIT_FAINT_OPACITY = 0.12;
+/** Opacity of a focused system's moon orbits — reveal/enlarge on selection. */
+export const MOON_ORBIT_EMPHASIZED_OPACITY = 0.65;
 
 export class OrbitRenderer {
   /**
@@ -79,6 +87,12 @@ export class OrbitRenderer {
     const geo = OrbitRenderer.buildGeometry(orbit, ringSceneRadius);
     line.geometry.dispose();
     line.geometry = geo;
+  }
+
+  /** Set the opacity of a line's material in place (no re-allocation). */
+  static setOpacity(line: THREE.Line, opacity: number): void {
+    const mat = line.material as THREE.LineBasicMaterial | undefined;
+    if (mat) mat.opacity = opacity;
   }
 
   /** Release GPU resources held by a line created by {@link buildLine}. */

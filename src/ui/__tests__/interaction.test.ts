@@ -15,7 +15,7 @@ import {
   TYPE_LABEL_KO,
   formatSimDays,
 } from "../format";
-import { labelText } from "../Labels";
+import { labelText, secondaryLabelText, shouldShowLabel } from "../Labels";
 import { SOLAR_SYSTEM } from "../../data/solarSystemData";
 import { ScaleManager } from "../../core/ScaleManager";
 
@@ -224,9 +224,41 @@ describe("info panel moon list markup helpers", () => {
 });
 
 describe("Labels", () => {
-  it("uses the Korean name for the in-scene tag", () => {
+  it("uses the Korean name for the in-scene tag primary", () => {
     expect(labelText(jupiter)).toBe("목성");
     expect(labelText(sun)).toBe("태양");
+  });
+});
+
+describe("label density & moon-label reveal (§11)", () => {
+  it("shows an English secondary line on the sprite beside the Korean primary", () => {
+    expect(labelText(jupiter)).toBe("목성");
+    expect(secondaryLabelText(jupiter)).toBe("Jupiter");
+    expect(secondaryLabelText(sun)).toBe("Sun");
+    expect(secondaryLabelText(io)).toBe("Io");
+  });
+
+  it("reveals a planet's moon labels only when that planet is selected", () => {
+    // No selection -> moons hidden; selecting the parent reveals its moons.
+    expect(shouldShowLabel("io", "moon", "jupiter", null, true)).toBe(false);
+    expect(shouldShowLabel("io", "moon", "jupiter", "jupiter", true)).toBe(true);
+    // A *different* planet's selection does not reveal another's moons.
+    expect(shouldShowLabel("io", "moon", "jupiter", "earth", true)).toBe(false);
+  });
+
+  it("gates moon-label reveal on the global moons-visibility toggle", () => {
+    expect(shouldShowLabel("io", "moon", "jupiter", "jupiter", false)).toBe(false);
+    expect(shouldShowLabel("io", "moon", "jupiter", "io", false)).toBe(false);
+  });
+
+  it("keeps a selected moon's own label visible", () => {
+    expect(shouldShowLabel("io", "moon", "jupiter", "io", true)).toBe(true);
+  });
+
+  it("never hides non-moon labels by selection or the moons toggle", () => {
+    expect(shouldShowLabel("earth", "planet", undefined, null, true)).toBe(true);
+    expect(shouldShowLabel("sun", "star", undefined, null, true)).toBe(true);
+    expect(shouldShowLabel("earth", "planet", undefined, "jupiter", false)).toBe(true);
   });
 });
 
