@@ -7,11 +7,16 @@ import {
   setOrbitsVisibility,
   setMoonsVisibility,
   setMoonEmphasis,
+  applySelectedEmphasis,
 } from "../SolarSystem";
 import {
   ORBIT_LINE_OPACITY,
+  ORBIT_COLOR,
   MOON_ORBIT_FAINT_OPACITY,
   MOON_ORBIT_EMPHASIZED_OPACITY,
+  SELECTED_ORBIT_OPACITY,
+  SELECTED_ORBIT_COLOR,
+  UNSELECTED_ORBIT_OPACITY,
 } from "../OrbitRenderer";
 import { ScaleManager, AU_KM } from "../ScaleManager";
 import { SOLAR_SYSTEM } from "../../data/solarSystemData";
@@ -72,22 +77,38 @@ describe("SolarSystem.buildViews", () => {
     );
   });
 
-  it("places bodies at their log-scaled orbit radius", () => {
+  it("renders a true ellipse whose mean scene radius equals the scaled semi-major axis", () => {
     updateBodyPositions(views, 123.45);
     for (const body of views.bodies) {
-      const km = semiMajorAxisKm(body.data);
-      const expectedR = scale.distance(km);
-      expect(body.group.position.length()).toBeCloseTo(expectedR, 4);
+      const line = views.lines.find(
+        (l) => l.userData.bodyId === body.data.id,
+      )!;
+      const attr = line.geometry.getAttribute(
+        "position",
+      ) as THREE.BufferAttribute;
+      let maxR = -Infinity;
+      let minR = Infinity;
+      for (let i = 0; i < attr.count; i++) {
+        const r = Math.hypot(attr.getX(i), attr.getY(i), attr.getZ(i));
+        if (r > maxR) maxR = r;
+        if (r < minR) minR = r;
+      }
+      // (apoapsis + periapsis)/2 is the semi-major axis = the body's scaled
+      // ring radius (mode-aware). Eccentric orbits span more than a circle.
+      expect((maxR + minR) / 2).toBeCloseTo(body.ringSceneRadius, 3);
     }
   });
 
-  it("positions match the drawn orbit ring exactly", () => {
-    updateBodyPositions(views, 7);
+  it("positions match the drawn orbit path exactly (body == guide vertex at sample times)", () => {
+    updateBodyPositions(views, 0); // t=0 is the geometry's first sample vertex
     for (const line of views.lines) {
-      const attr = line.geometry.getAttribute("position") as THREE.BufferAttribute;
-      const ringR = Math.hypot(attr.getX(0), attr.getY(0), attr.getZ(0));
+      const attr = line.geometry.getAttribute(
+        "position",
+      ) as THREE.BufferAttribute;
       const body = views.byId.get(line.userData.bodyId as string)!;
-      expect(body.group.position.length()).toBeCloseTo(ringR, 4);
+      expect(body.group.position.x).toBeCloseTo(attr.getX(0), 4);
+      expect(body.group.position.y).toBeCloseTo(attr.getY(0), 4);
+      expect(body.group.position.z).toBeCloseTo(attr.getZ(0), 4);
     }
   });
 
@@ -148,12 +169,24 @@ describe("SolarSystem.buildViews", () => {
   });
 });
 
-function expectBodiesOnRings(views: SolarSystemViewsLike): void {
+function expectBodiesOnGuides(views: SolarSystemViewsLike): void {
   for (const line of views.lines) {
-    const attr = line.geometry.getAttribute("position") as THREE.BufferAttribute;
-    const ringR = Math.hypot(attr.getX(0), attr.getY(0), attr.getZ(0));
     const body = views.byId.get(line.userData.bodyId as string);
-    expect(body!.group.position.length()).toBeCloseTo(ringR, 4);
+    if (!body) continue;
+    const attr = line.geometry.getAttribute("position") as THREE.BufferAttribute;
+    const bp = body.group.position;
+    const r = bp.length() || 1;
+    let best = Infinity;
+    for (let i = 0; i < attr.count; i++) {
+      const d = Math.hypot(
+        attr.getX(i) - bp.x,
+        attr.getY(i) - bp.y,
+        attr.getZ(i) - bp.z,
+      );
+      if (d < best) best = d;
+    }
+    // The body rides on the guide polyline (nearest vertex within tessellation).
+    expect(best / r).toBeLessThan(0.05);
   }
 }
 
@@ -167,7 +200,7 @@ describe("SolarSystem scale refresh + visibility toggles", () => {
     updateBodyPositions(views, 10);
     scale.setDistanceMode("linear");
     refreshViews(views, 10);
-    expectBodiesOnRings(views);
+    expectBodiesOnGuides(views);
   });
 
   it("focus-mode refresh keeps moon orbits local and compact", () => {
@@ -178,7 +211,7 @@ describe("SolarSystem scale refresh + visibility toggles", () => {
     const jupiter = SOLAR_SYSTEM.find((b) => b.id === "jupiter")!;
     scale.setFocusKm(semiMajorAxisKm(jupiter));
     refreshViews(views, 20);
-    expectBodiesOnRings(views);
+    expectBodiesOnGuides(views);
     const earth = views.byId.get("earth")!;
     const moon = views.byId.get("moon")!;
     expect(moon.group.position.length()).toBeLessThan(earth.group.position.length() * 0.5);
@@ -244,5 +277,155 @@ describe("SolarSystem scale refresh + visibility toggles", () => {
     // Planet/dwarf lines keep their original guide opacity (not faint/emphasized).
     expect((earthLine.material as THREE.LineBasicMaterial).opacity).toBe(ORBIT_LINE_OPACITY);
     expect((plutoLine.material as THREE.LineBasicMaterial).opacity).toBe(ORBIT_LINE_OPACITY);
+  });
+});
+
+describe("true-ellipse orbit geometry", () => {
+  /** Periapsis & apoapsis scene radii of an orbit guide (in its local frame). */
+  function orbitRadii(line: THREE.Line): { maxR: number; minR: number } {
+    const attr = line.geometry.getAttribute(
+      "position",
+    ) as THREE.BufferAttribute;
+    let maxR = -Infinity;
+    let minR = Infinity;
+    for (let i = 0; i < attr.count; i++) {
+      const r = Math.hypot(attr.getX(i), attr.getY(i), attr.getZ(i));
+      if (r > maxR) maxR = r;
+      if (r < minR) minR = r;
+    }
+    return { maxR, minR };
+  }
+
+  it("preserves real eccentricity: implied e from apo/peri ratio matches the dataset", () => {
+    const views = SolarSystem.buildViews(new ScaleManager());
+    // Linear scene scaling preserves eccentricity exactly (focus stays at the
+    // parent), so apoapsis/periapsis must recover the real e via (1+e)/(1-e).
+    const cases = [
+      { id: "mercury", e: 0.2056 },
+      { id: "pluto", e: 0.2488 },
+      { id: "mars", e: 0.0934 },
+      { id: "earth", e: 0.0167 },
+    ];
+    for (const c of cases) {
+      const line = views.lines.find((l) => l.userData.bodyId === c.id)!;
+      const { maxR, minR } = orbitRadii(line);
+      const ratio = maxR / minR; // == (1+e)/(1−e)
+      const implied = (ratio - 1) / (ratio + 1);
+      expect(implied).toBeCloseTo(c.e, 3);
+    }
+  });
+
+  it("tilts inclined orbits out of the reference plane (Pluto i=17.16°, Triton i=156.9°)", () => {
+    const views = SolarSystem.buildViews(new ScaleManager());
+    const measure = (id: string) => {
+      const line = views.lines.find((l) => l.userData.bodyId === id)!;
+      const attr = line.geometry.getAttribute(
+        "position",
+      ) as THREE.BufferAttribute;
+      const { maxR, minR } = orbitRadii(line);
+      const semiMajor = (maxR + minR) / 2;
+      let maxOutOfPlane = 0;
+      // In the local orbit frame the reference plane is X–Y (z=0 for i=0);
+      // inclination lifts points out along z by k·a·√(1−e²)·sin(i).
+      for (let i = 0; i < attr.count; i++) {
+        maxOutOfPlane = Math.max(maxOutOfPlane, Math.abs(attr.getZ(i)));
+      }
+      return { maxOutOfPlane, semiMajor };
+    };
+
+    const pluto = SOLAR_SYSTEM.find((b) => b.id === "pluto")!;
+    const p = measure("pluto");
+    const ePluto = pluto.eccentricity ?? 0;
+    const iPluto = pluto.inclinationDeg ?? 0;
+    expect(p.maxOutOfPlane / p.semiMajor).toBeCloseTo(
+      Math.sqrt(1 - ePluto * ePluto) * Math.sin((iPluto * Math.PI) / 180),
+      2,
+    );
+
+    const triton = SOLAR_SYSTEM.find((b) => b.id === "triton")!;
+    const t = measure("triton");
+    const eTriton = triton.eccentricity ?? 0;
+    const iTriton = triton.inclinationDeg ?? 0;
+    expect(t.maxOutOfPlane / t.semiMajor).toBeCloseTo(
+      Math.sqrt(1 - eTriton * eTriton) * Math.sin((iTriton * Math.PI) / 180),
+      2,
+    );
+
+    // Earth's inclination is 0.0°, so its orbit must stay in the reference plane.
+    const e = measure("earth");
+    expect(e.maxOutOfPlane).toBeLessThan(e.semiMajor * 1e-6);
+  });
+});
+
+describe("selection orbit highlighting", () => {
+  const mat = (line: THREE.Line) => line.material as THREE.LineBasicMaterial;
+
+  it("highlights the selected body's orbit, reveals its moons, and dims the rest", () => {
+    const views = SolarSystem.buildViews(new ScaleManager());
+    applySelectedEmphasis(views, "jupiter");
+    for (const line of views.lines) {
+      const owner = views.byId.get(line.userData.bodyId as string)!;
+      if (owner.data.id === "jupiter") {
+        expect(mat(line).opacity).toBe(SELECTED_ORBIT_OPACITY);
+        expect(mat(line).color.getHexString()).toBe(
+          SELECTED_ORBIT_COLOR.slice(1),
+        );
+      } else if (owner.data.type === "moon" && owner.data.parentId === "jupiter") {
+        expect(mat(line).opacity).toBe(MOON_ORBIT_EMPHASIZED_OPACITY);
+      } else if (owner.data.type === "moon") {
+        expect(mat(line).opacity).toBe(MOON_ORBIT_FAINT_OPACITY);
+      } else {
+        expect(mat(line).opacity).toBe(UNSELECTED_ORBIT_OPACITY);
+        expect(mat(line).color.getHexString()).toBe(ORBIT_COLOR.slice(1));
+      }
+    }
+  });
+
+  it("handles a selection with no applicable orbit (the Sun) gracefully", () => {
+    const views = SolarSystem.buildViews(new ScaleManager());
+    applySelectedEmphasis(views, "jupiter"); // establish a highlight first
+    applySelectedEmphasis(views, "sun"); // Sun has no orbit line → restore defaults
+    for (const line of views.lines) {
+      const owner = views.byId.get(line.userData.bodyId as string)!;
+      const m = mat(line);
+      expect(m.opacity).toBe(
+        owner.data.type === "moon"
+          ? MOON_ORBIT_FAINT_OPACITY
+          : ORBIT_LINE_OPACITY,
+      );
+      expect(m.color.getHexString()).toBe(ORBIT_COLOR.slice(1));
+    }
+  });
+
+  it("clearing the selection restores every guide to its default opacity", () => {
+    const views = SolarSystem.buildViews(new ScaleManager());
+    applySelectedEmphasis(views, "mars");
+    applySelectedEmphasis(views, null);
+    for (const line of views.lines) {
+      const owner = views.byId.get(line.userData.bodyId as string)!;
+      expect(mat(line).opacity).toBe(
+        owner.data.type === "moon"
+          ? MOON_ORBIT_FAINT_OPACITY
+          : ORBIT_LINE_OPACITY,
+      );
+    }
+  });
+
+  it("highlighting a moon brightens its siblings and dims its parent planet", () => {
+    const views = SolarSystem.buildViews(new ScaleManager());
+    applySelectedEmphasis(views, "io");
+    for (const line of views.lines) {
+      const owner = views.byId.get(line.userData.bodyId as string)!;
+      if (owner.data.id === "io") {
+        expect(mat(line).opacity).toBe(SELECTED_ORBIT_OPACITY);
+      } else if (owner.data.type === "moon" && owner.data.parentId === "jupiter") {
+        expect(mat(line).opacity).toBe(MOON_ORBIT_EMPHASIZED_OPACITY);
+      } else if (owner.data.type === "moon") {
+        expect(mat(line).opacity).toBe(MOON_ORBIT_FAINT_OPACITY);
+      } else {
+        // Jupiter's own (helio) line dims like every other non-selected body.
+        expect(mat(line).opacity).toBe(UNSELECTED_ORBIT_OPACITY);
+      }
+    }
   });
 });

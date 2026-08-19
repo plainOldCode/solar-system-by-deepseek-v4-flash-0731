@@ -7,10 +7,11 @@
  * planet's group, so the parent-child transform automatically carries the moon
  * along with the planet while its own `update` adds the moon's orbital offset.
  *
- * The per-frame motion reuses `orbitalPosition` for the direction and
- * `ScaleManager.distance` for the magnitude, so the body always stays exactly
- * on its drawn orbit ring. A single reused temp vector avoids per-frame
- * allocation.
+ * The per-frame motion reuses `orbitalPosition` for the true-ellipse direction
+ * and `ScaleManager.distance`-derived `ringSceneRadius` for the semi-major scene
+ * axis, always scaled by the same linear factor the orbit guide uses — so the
+ * body stays exactly on its drawn (true-ellipse) orbit path. A single reused
+ * temp vector avoids per-frame allocation.
  */
 
 import * as THREE from "three";
@@ -140,20 +141,29 @@ export class CelestialBody {
   /**
    * Move the body to its simulated orbit position at `timeDays`. Sun/static
    * bodies (no semi-major axis) resolve to the origin. Deterministic for a
-   * given body and time, so the visual is reproducible.
+   * given body and time, so the visual is reproducible. Uses the same linear
+   * scale factor as the orbit guide (ringSceneRadius / semiMajorAxis), so the
+   * sphere rides exactly on its drawn true-ellipse path with the parent at the
+   * focus.
    */
   update(timeDays: number): void {
-    const p = orbitalPosition(this.orbitParams, timeDays).position;
-    const len = Math.hypot(p.x, p.y, p.z) || 1;
-    const r = this.ringSceneRadius;
-    this.tmp.set((p.x / len) * r, (p.y / len) * r, (p.z / len) * r);
+    const a = this.semiMajorAxisKm;
+    if (a > 0) {
+      const p = orbitalPosition(this.orbitParams, timeDays).position;
+      const k = this.ringSceneRadius / a;
+      this.tmp.set(p.x * k, p.y * k, p.z * k);
+    } else {
+      // Star / no-orbit body: rest at the parent origin.
+      this.tmp.set(0, 0, 0);
+    }
     this.group.position.copy(this.tmp);
   }
 
   /**
    * Heliocentric bodies scale by the mode-aware global distance mapping; moons
    * use the always-local mapping so focus re-anchoring never distorts their
-   * parent-relative orbits. Shared with OrbitRenderer so body and ring agree.
+   * parent-relative orbits. Shared with OrbitRenderer so body and guide use the
+   * same semi-major scene radius.
    */
   private computeRingSceneRadius(): number {
     return this.data.type === "moon"

@@ -17,6 +17,11 @@ import { OrbitRenderer } from "./OrbitRenderer";
 import {
   MOON_ORBIT_FAINT_OPACITY,
   MOON_ORBIT_EMPHASIZED_OPACITY,
+  ORBIT_LINE_OPACITY,
+  ORBIT_COLOR,
+  SELECTED_ORBIT_OPACITY,
+  SELECTED_ORBIT_COLOR,
+  UNSELECTED_ORBIT_OPACITY,
 } from "./OrbitRenderer";
 import {
   StarField,
@@ -301,6 +306,19 @@ export class SolarSystem {
   }
 
   /**
+   * Selection highlight: clearly emphasise the selected body's own orbit while
+   * dimming every other guide, and reveal (emphasize) the moon orbits of the
+   * focused planetary system. A selection with no applicable orbit (the Sun)
+   * is handled gracefully by restoring every guide to its default opacity, as
+   * is clearing the selection. Works purely on opacity/colour, so the orbit and
+   * moon visibility toggles (which set `visible`) and all scale/focus modes
+   * (which rebuild geometry) are unaffected.
+   */
+  setSelectedEmphasis(selectedId: string | null): void {
+    applySelectedEmphasis(this.views, selectedId);
+  }
+
+  /**
    * Rebuild all bodies and rings for the live scale (called after any
    * scale-mode or focus change). Keeps the body-sphere/ring coincidence and
    * re-positions every body at the current simulated time.
@@ -401,5 +419,55 @@ export function setMoonEmphasis(
       line,
       on ? MOON_ORBIT_EMPHASIZED_OPACITY : MOON_ORBIT_FAINT_OPACITY,
     );
+  }
+}
+
+/**
+ * Pure, headless-testable companion of `SolarSystem.setSelectedEmphasis`
+ * (§12): highlight the selected body's own orbit and dim everything else, and
+ * reveal the focused system's moon orbits. Rules:
+ *  - no selection, or a selection with no applicable orbit (the Sun) → restore
+ *    every guide to its default opacity (planets ORBIT_LINE_OPACITY, moons faint);
+ *  - the selected body's own orbit → SELECTED_ORBIT_OPACITY + SELECTED_ORBIT_COLOR;
+ *  - moon orbits of the selected body's planetary system → emphasized (reveal);
+ *  - everything else → dimmed (planets UNSELECTED_ORBIT_OPACITY, moons faint).
+ * Only opacity/colour change — geometry, `visible` toggles and scale modes are
+ * untouched, so orbit/moon visibility and all distance/focus modes still apply.
+ */
+export function applySelectedEmphasis(
+  views: SolarSystemViews,
+  selectedId: string | null,
+): void {
+  const sel = selectedId ? views.byId.get(selectedId) : undefined;
+  const noOrbit = !sel || sel.data.type === "star";
+  const selIsMoon = !!sel && sel.data.type === "moon";
+  const selPlanet = selIsMoon ? sel.data.parentId : selectedId;
+
+  for (const line of views.lines) {
+    const owner = views.byId.get(line.userData.bodyId as string);
+    if (!owner) continue;
+    const mat = line.material as THREE.LineBasicMaterial;
+    const isMoon = owner.data.type === "moon";
+
+    if (noOrbit) {
+      mat.color.set(ORBIT_COLOR);
+      mat.opacity = isMoon ? MOON_ORBIT_FAINT_OPACITY : ORBIT_LINE_OPACITY;
+      continue;
+    }
+
+    const own = owner.data.id === selectedId;
+    const focusedMoon =
+      isMoon && selPlanet != null && owner.data.parentId === selPlanet;
+
+    if (own) {
+      mat.color.set(SELECTED_ORBIT_COLOR);
+      mat.opacity = SELECTED_ORBIT_OPACITY;
+    } else if (focusedMoon) {
+      mat.color.set(ORBIT_COLOR);
+      mat.opacity = MOON_ORBIT_EMPHASIZED_OPACITY;
+    } else {
+      mat.color.set(ORBIT_COLOR);
+      mat.opacity = isMoon ? MOON_ORBIT_FAINT_OPACITY : UNSELECTED_ORBIT_OPACITY;
+    }
   }
 }

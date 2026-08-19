@@ -1,14 +1,16 @@
 /**
- * OrbitRenderer — builds logarithmic orbit-path lines (the drawn rings) from
+ * OrbitRenderer — builds true-ellipse orbit-path lines (the drawn guides) from
  * the existing deterministic orbital simulation and log scaling APIs.
  *
  * It does NOT re-implement formulas: it samples `orbitalPosition` (which holds
- * the Keplerian math) across one full period and places each sample at the
- * ring scene radius produced by the body's scale mapping. Both the ring and
- * the moving body use the same radius, so the sphere always travels exactly
- * along its drawn ring. The ring radius is passed in (not derived internally)
- * so moons can use their local scale and heliocentric bodies their global
- * scale without duplicating that choice here.
+ * the Keplerian math) across one full period and linearly scales each sample
+ * into scene space so the guide is a *true* ellipse — same eccentricity, same
+ * inclination, with the parent body at the focus — whose semi-major axis equals
+ * the body's mode-aware `ringSceneRadius`. Both the ring and the moving body use
+ * the exact same linear scale factor, so the sphere always travels precisely
+ * along its drawn guide. The ring radius is passed in (not derived internally)
+ * so moons can use their local scale and heliocentric bodies their global scale
+ * without duplicating that choice here.
  */
 
 import * as THREE from "three";
@@ -28,13 +30,33 @@ export const ORBIT_COLOR = "#7788aa";
 export const MOON_ORBIT_FAINT_OPACITY = 0.12;
 /** Opacity of a focused system's moon orbits — reveal/enlarge on selection. */
 export const MOON_ORBIT_EMPHASIZED_OPACITY = 0.65;
+/** Opacity + colour of the selected body's own orbit — the clear highlight. */
+export const SELECTED_ORBIT_OPACITY = 0.95;
+export const SELECTED_ORBIT_COLOR = "#ffcf6e";
+/** Opacity of non-selected heliocentric guide lines while something is selected. */
+export const UNSELECTED_ORBIT_OPACITY = 0.14;
 
 export class OrbitRenderer {
   /**
+   * Linear scene-scale factor for an orbit: maps its real semi-major axis to
+   * `ringSceneRadius`, so the drawn path is a true (affinely-scaled) ellipse —
+   * eccentricity and inclination are preserved exactly and the parent body stays
+   * at the focus. Degenerate orbits (no semi-major axis) fall back to 1.
+   */
+  static scaleFactor(
+    orbit: OrbitParams,
+    ringSceneRadius: number,
+  ): number {
+    const a = orbit.semiMajorAxisKm;
+    if (!(a > 0) || !Number.isFinite(a) || !(ringSceneRadius > 0)) return 1;
+    return ringSceneRadius / a;
+  }
+
+  /**
    * Build a closed THREE.Line orbit path at the given scene radius for the
    * body's real semi-major-axis eccentricity/inclination. The line is centred
-   * on the parent body's local origin, so it is attached to the parent's group
-   * (or the scene root for heliocentric bodies).
+   * on the parent body's local origin (the focus), so it is attached to the
+   * parent's group (or the scene root for heliocentric bodies).
    */
   static buildLine(
     orbit: OrbitParams,
@@ -60,16 +82,12 @@ export class OrbitRenderer {
     ringSceneRadius: number,
   ): THREE.BufferGeometry {
     const period = orbit.periodDays > 0 ? orbit.periodDays : 1;
+    const k = OrbitRenderer.scaleFactor(orbit, ringSceneRadius);
     const pts: THREE.Vector3[] = new Array(ORBIT_SEGMENTS + 1);
     for (let i = 0; i <= ORBIT_SEGMENTS; i++) {
       const t = (i / ORBIT_SEGMENTS) * period;
       const p = orbitalPosition(orbit, t).position;
-      const len = Math.hypot(p.x, p.y, p.z) || 1;
-      pts[i] = new THREE.Vector3(
-        (p.x / len) * ringSceneRadius,
-        (p.y / len) * ringSceneRadius,
-        (p.z / len) * ringSceneRadius,
-      );
+      pts[i] = new THREE.Vector3(p.x * k, p.y * k, p.z * k);
     }
     return new THREE.BufferGeometry().setFromPoints(pts);
   }
