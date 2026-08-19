@@ -1,0 +1,140 @@
+{
+  "checks": [
+    {
+      "name": "desktop WebGL2 context created",
+      "ok": true,
+      "detail": "vendor=WebKit renderer=WebKit WebGL version=WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+    },
+    {
+      "name": "desktop starts at empty info (home), full body list",
+      "ok": true,
+      "detail": "empty=true dropdown=sun bodies=35"
+    },
+    {
+      "name": "desktop default view horizontal/plane-like (vision-confirmed; lit band wider than tall)",
+      "ok": true,
+      "detail": "lit=6057 spanX=845/1280 spanY=617/800 width:height=1.37"
+    },
+    {
+      "name": "desktop OrbitControls drag re-renders scene without breaking plane",
+      "ok": true,
+      "detail": "after-drag spanX=1009/1280 spanY=585/800 ratio=1.72 lit=6250"
+    },
+    {
+      "name": "desktop selecting Jupiter centers focus + fills info panel",
+      "ok": true,
+      "detail": "{\"title\":\"목성\",\"type\":\"행성\",\"empty\":false}"
+    },
+    {
+      "name": "desktop selecting Pluto (inclined orbit) focus OK",
+      "ok": true,
+      "detail": "{\"title\":\"명왕성\",\"empty\":false}"
+    },
+    {
+      "name": "desktop Hide Panels folds entire HUD",
+      "ok": true,
+      "detail": "{\"root\":true,\"header\":true,\"info\":true,\"cbar\":true,\"hint\":true,\"showShown\":true,\"focused\":true}"
+    },
+    {
+      "name": "desktop Hide Panels reveals persistent affordance, focused",
+      "ok": true,
+      "detail": "shown=true focus=true"
+    },
+    {
+      "name": "desktop Show Panels (Enter) restores everything",
+      "ok": true,
+      "detail": "{\"root\":true,\"header\":true,\"info\":true,\"showHidden\":true,\"pressed\":\"true\",\"sel\":\"pluto\",\"title\":\"명왕성\"}"
+    },
+    {
+      "name": "desktop selection+focus preserved across hide/show",
+      "ok": true,
+      "detail": "sel=pluto title=명왕성"
+    },
+    {
+      "name": "desktop runtime: no console/page errors",
+      "ok": true,
+      "detail": "errors=[]"
+    },
+    {
+      "name": "default rate shows 0.1일/초",
+      "ok": true,
+      "detail": "speed=0.1일/초"
+    },
+    {
+      "name": "date progresses ≈0.5 day in 5s (0.1 day/sec = one tenth of former 1 day/sec)",
+      "ok": true,
+      "detail": "date 시뮬레이션 4.8시간 -> 시뮬레이션 16.7시간 (Δ 0.50일)"
+    },
+    {
+      "name": "speed ladder steps 0.1 → 0.2 → 0.5",
+      "ok": true,
+      "detail": "0.1일/초 → 0.2일/초 → 0.5일/초"
+    },
+    {
+      "name": "reset returns speed to 0.1 and date ~0",
+      "ok": true,
+      "detail": "{\"speed\":\"0.1일/초\",\"date\":\"시뮬레이션 0.4시간\"}"
+    },
+    {
+      "name": "speed-down disabled at 0.1 floor",
+      "ok": true,
+      "detail": "downDisabled=true"
+    },
+    {
+      "name": "mobile-390x844 plane-like default (horizontal disc)",
+      "ok": true,
+      "detail": "renderer=WebKit WebGL lit=2717 spanX=389 spanY=617 ratio=0.63"
+    },
+    {
+      "name": "mobile-390x844 hide folds HUD + reveal affordance",
+      "ok": true,
+      "detail": "{\"root\":true,\"showShown\":true,\"focused\":true}"
+    },
+    {
+      "name": "mobile-390x844 Show Panels (Enter) restores everything",
+      "ok": true,
+      "detail": "restored=true"
+    },
+    {
+      "name": "mobile-390x844 runtime: no console/page errors",
+      "ok": true,
+      "detail": "errors=[]"
+    },
+    {
+      "name": "mobile-844x390 plane-like default (horizontal disc)",
+      "ok": true,
+      "detail": "renderer=WebKit WebGL lit=2019 spanX=413 spanY=301 ratio=1.37"
+    },
+    {
+      "name": "mobile-844x390 hide folds HUD + reveal affordance",
+      "ok": true,
+      "detail": "{\"root\":true,\"showShown\":true,\"focused\":true}"
+    },
+    {
+      "name": "mobile-844x390 Show Panels (Enter) restores everything",
+      "ok": true,
+      "detail": "restored=true"
+    },
+    {
+      "name": "mobile-844x390 runtime: no console/page errors",
+      "ok": true,
+      "detail": "errors=[]"
+    }
+  ],
+  "screenshots": [
+    "<project-root>/artifacts/evidence/integration/desktop-home.png",
+    "<project-root>/artifacts/evidence/integration/desktop-after-drag.png",
+    "<project-root>/artifacts/evidence/integration/desktop-jupiter.png",
+    "<project-root>/artifacts/evidence/integration/desktop-pluto-inclined.png",
+    "<project-root>/artifacts/evidence/integration/desktop-hidden.png",
+    "<project-root>/artifacts/evidence/integration/desktop-restored.png",
+    "<project-root>/artifacts/evidence/integration/mobile-390x844-home.png",
+    "<project-root>/artifacts/evidence/integration/mobile-390x844-restored.png",
+    "<project-root>/artifacts/evidence/integration/mobile-844x390-home.png",
+    "<project-root>/artifacts/evidence/integration/mobile-844x390-restored.png"
+  ],
+  "desktopErrors": [],
+  "rateErrors": [],
+  "mobile-390x844_errors": [],
+  "mobile-844x390_errors": []
+}
