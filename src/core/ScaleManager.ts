@@ -41,7 +41,9 @@ export interface ScaleManagerOptions {
    * ratio so planets/moons shrink *toward* the Sun (bodies smaller than the
    * Sun get disproportionately smaller) while ordering stays monotonic. This
    * keeps the Sun clearly dominant and planets distinguishable from each
-   * other instead of all collapsing near Sun-sized. Default 3.0.
+   * other instead of all collapsing near Sun-sized. Default 3.6 (raised from
+   * 3.0 so terrestrial/giant planets read as compact orbit markers — each
+   * ~2–5% of its orbit radius — with the Sun unmistakably the largest).
    */
   radiusCompression?: number;
   /** Smallest rendered sphere radius (floor, protects tiny moons). */
@@ -59,7 +61,7 @@ const DEFAULTS = {
   distanceFloorKm: 100_000,
   linearDistanceGain: 1e-9,
   sunSceneRadius: 2.2,
-  radiusCompression: 3.0,
+  radiusCompression: 3.6,
   minSceneRadius: 0.25,
   maxSceneRadius: 10.0,
   linearRadiusGain: 2.2 / 696_340.0, // Sun 696340 km -> sunSceneRadius (2.2) scene units

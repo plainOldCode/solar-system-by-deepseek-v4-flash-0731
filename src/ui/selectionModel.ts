@@ -57,6 +57,23 @@ export function bodyIdFromIntersects(
 }
 
 /**
+ * Deterministic pick resolution: a body sphere always outranks an orbit guide
+ * line, then among bodies the nearest (first, distance-sorted) wins. Orbit
+ * lines can lie nearer the camera than a body's sphere along the same sight
+ * line (e.g. Venus's ring crossing Earth's screen disc), so a merged
+ * nearest-first list let a line shadow and mis-select the wrong body. Resolve
+ * body meshes first; fall back to orbit-line hits only when no sphere is hit.
+ */
+export function resolveBodyPick(
+  meshHits: readonly { object: THREE.Object3D }[],
+  lineHits: readonly { object: THREE.Object3D }[],
+): string | null {
+  const meshId = bodyIdFromIntersects(meshHits);
+  if (meshId) return meshId;
+  return bodyIdFromIntersects(lineHits);
+}
+
+/**
  * Comfortable camera distance when explicitly focusing a body: scale to its
  * rendered sphere radius so small moons get close and the Sun pulls back,
  * clamped to a sane band that keeps the view inside scene bounds.

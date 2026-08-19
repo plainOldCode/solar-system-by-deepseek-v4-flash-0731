@@ -24,10 +24,10 @@ import { HudVisibility } from "./hudVisibility";
 import { SOLAR_SYSTEM } from "../data/solarSystemData";
 import type { CelestialBody } from "../core/CelestialBody";
 import {
-  bodyIdFromIntersects,
   focusDistanceFor,
   nextSelection,
   prevSelection,
+  resolveBodyPick,
 } from "./selectionModel";
 import { bodyAlt, formatSimDays } from "./format";
 
@@ -268,12 +268,16 @@ export class AppController {
     this.pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
     this.pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
     this.raycaster.setFromCamera(this.pointer, this.rig.camera);
-    const targets: THREE.Object3D[] = [
-      ...this.system.views.bodies.map((b) => b.mesh),
-      ...this.system.views.lines,
-    ];
-    const hits = this.raycaster.intersectObjects(targets, false);
-    return bodyIdFromIntersects(hits);
+    // Selection identity must be deterministic: clicking a visible (opaque)
+    // body selects THAT exact body. Resolve body-mesh hits before orbit-line
+    // hits so a guide line can never shadow a sphere (see resolveBodyPick).
+    return resolveBodyPick(
+      this.raycaster.intersectObjects(
+        this.system.views.bodies.map((b) => b.mesh),
+        false,
+      ),
+      this.raycaster.intersectObjects(this.system.views.lines, false),
+    );
   }
 
   /* ── keyboard interaction ──────────────────────────────────────── */

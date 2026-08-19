@@ -5,6 +5,7 @@ import {
   nextSelection,
   prevSelection,
   bodyIdFromIntersects,
+  resolveBodyPick,
   focusDistanceFor,
 } from "../selectionModel";
 import { formatBodyInfo, bodyAlt, TYPE_LABEL_KO, formatSimDays } from "../format";
@@ -61,6 +62,41 @@ describe("bodyIdFromIntersects", () => {
     const plain = new THREE.Mesh();
     expect(bodyIdFromIntersects([{ object: plain }])).toBeNull();
     expect(bodyIdFromIntersects([])).toBeNull();
+  });
+});
+
+describe("resolveBodyPick", () => {
+  it("lets a nearer orbit-line hit NOT shadow a farther body sphere (Earth vs Venus)", () => {
+    const earthMesh = new THREE.Mesh();
+    earthMesh.userData.bodyId = "earth";
+    const venusLine = new THREE.Line();
+    venusLine.userData.bodyId = "venus";
+    // Distance-sorted merged list would put the Venus line first (nearest),
+    // which is exactly how "click Earth -> select Venus" arose. resolveBodyPick
+    // instead resolves body meshes first so Earth's sphere wins.
+    const meshHits = [{ object: earthMesh, distance: 56.9 } as any];
+    const lineHits = [{ object: venusLine, distance: 55.8 } as any];
+    expect(resolveBodyPick(meshHits, lineHits)).toBe("earth");
+  });
+
+  it("falls back to orbit-line hits when no body sphere is hit", () => {
+    const venusLine = new THREE.Line();
+    venusLine.userData.bodyId = "venus";
+    expect(resolveBodyPick([], [{ object: venusLine }])).toBe("venus");
+    expect(resolveBodyPick([], [])).toBeNull();
+  });
+
+  it("picks the nearest body mesh when several spheres overlap", () => {
+    const nearMoon = new THREE.Mesh();
+    nearMoon.userData.bodyId = "moon";
+    const farEarth = new THREE.Mesh();
+    farEarth.userData.bodyId = "earth";
+    // intersectObjects returns distance-sorted hits (nearest first).
+    const meshHits = [
+      { object: nearMoon, distance: 55.0 },
+      { object: farEarth, distance: 56.9 },
+    ] as any;
+    expect(resolveBodyPick(meshHits, [])).toBe("moon");
   });
 });
 
