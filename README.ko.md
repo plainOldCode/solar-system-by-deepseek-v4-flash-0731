@@ -18,7 +18,7 @@
 - 일반적인 태양계 관찰 방식에 맞춘 수평형 기본 orbital plane 구성
 - 3D orbital inclination이 보이는 궤도 표현
 - 실제 공전 주기 비율을 유지하는 시간 기반 궤도 시뮬레이션
-- 자체 발광 태양, 토성 고리, 행성 조명
+- 자체 발광 태양과 절제된 procedural glow halo, 따뜻한 PointLight로 행성·위성이 실제 태양광처럼 조명되고, 토성 고리 포함
 - Three.js `OrbitControls`를 이용한 회전/이동/확대·축소
 - orbit line보다 천체 mesh를 우선하는 deterministic body selection
 - 행성, 명왕성, 주요 위성 camera focus
@@ -168,11 +168,12 @@ src/
 
 - Typecheck: 통과
 - Production build: 통과
-- Vitest: **134/134 통과**
+- Vitest: **139/139 통과**
 - 데스크톱·모바일 body selection: 통과
 - Earth/Venus selection identity regression: 통과
 - Pluto/Charon/Titan 등 위성 선택: 통과
 - 태양 자체 발광 렌더링: 통과
+- 태양 glow halo + 따뜻한 PointLight + 자연스러운 태양광 조명: 통과
 - 수평형 orbital composition: 통과
 - Hide/Show Panels keyboard 복구: 통과
 - procedural star field + visibility toggle: 통과
@@ -184,7 +185,7 @@ src/
 - console/page error: 검증 run에서 0건
 - Git working tree: clean
 
-최신 selection/size 수정은 `30ffcaa`, 태양 발광 수정은 `f28284b` commit에 기록되어 있습니다. 리뷰에서 지적된 기능 격차는 `84e7a07`(star field + scale mode + visibility toggle), `ac15c8d`(hover tooltip + 정보 패널), `4731883`(scale disclaimer + 영어 라벨 + 위성계 노출), `55c8019`(진짜 타원 궤도 + 선택 궤도 강조) commit에서 구현되었습니다.
+최신 태양 광원·glow 개선(procedural halo, 따뜻한 PointLight, `fog:false` 자체 발광 태양)은 `501657b` commit에 기록되어 있습니다. selection/size 수정은 `30ffcaa`, 태양 발광 수정은 `f28284b` commit에 기록되어 있습니다. 리뷰에서 지적된 기능 격차는 `84e7a07`(star field + scale mode + visibility toggle), `ac15c8d`(hover tooltip + 정보 패널), `4731883`(scale disclaimer + 영어 라벨 + 위성계 노출), `55c8019`(진짜 타원 궤도 + 선택 궤도 강조) commit에서 구현되었습니다.
 
 ## 알려진 제한사항
 

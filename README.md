@@ -17,7 +17,7 @@ This project was implemented from the following prompt:
 - Logarithmic heliocentric distance mapping with independent body-radius scaling.
 - Horizontal, plane-like default Solar System composition with visible 3D orbital inclinations.
 - Kepler-style time-based orbital motion with preserved relative period ratios.
-- Sun rendered as a bright self-illuminated body; Saturn rings and planetary lighting are included.
+- Sun rendered as a bright self-illuminated body with a restrained procedural glow halo and warm PointLight, so planets and moons are believably sunlit; Saturn rings are included too.
 - Three.js `OrbitControls` for orbit, pan, and zoom.
 - Deterministic body selection: body spheres take precedence over orbit-guide hits.
 - Camera focus for planets, dwarf planet Pluto, and major moons.
@@ -166,11 +166,12 @@ The latest verification was performed in a real Chromium/SwiftShader WebGL runti
 
 - Typecheck: passed
 - Production build: passed
-- Vitest: **134/134 tests passed**
+- Vitest: **139/139 tests passed**
 - Desktop and mobile selection checks: passed
 - Earth/Venus identity regression: passed
 - Pluto/Charon/Titan and other moon selection: passed
 - Sun emissive rendering: passed
+- Sun glow halo + warm PointLight with believable sunlit surfaces: passed
 - Horizontal orbital composition: passed
 - Hide/Show Panels keyboard restoration: passed
 - Procedural star field with visibility toggle: passed
@@ -182,7 +183,7 @@ The latest verification was performed in a real Chromium/SwiftShader WebGL runti
 - Console and page errors: zero in the verification run
 - Git working tree: clean
 
-The final focused selection/size fix is recorded in commit `30ffcaa`; the Sun emissive fix is recorded in `f28284b`. The reviewed feature gaps were implemented across commits `84e7a07` (star field + scale modes + visibility toggles), `ac15c8d` (hover tooltip + info panel), `4731883` (scale disclaimer + EN labels + moon-system reveal), and `55c8019` (true elliptical orbits + selected-orbit highlight).
+The latest Sun light + glow improvement (procedural halo, warm PointLight, `fog:false` self-lit Sun) is recorded in commit `501657b`. The focused selection/size fix is recorded in `30ffcaa`; the Sun emissive fix is recorded in `f28284b`. The reviewed feature gaps were implemented across commits `84e7a07` (star field + scale modes + visibility toggles), `ac15c8d` (hover tooltip + info panel), `4731883` (scale disclaimer + EN labels + moon-system reveal), and `55c8019` (true elliptical orbits + selected-orbit highlight).
 
 ## Known limitations
 
