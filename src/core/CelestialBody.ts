@@ -35,14 +35,17 @@ export class CelestialBody {
   /** Real semi-major axis from the parent in km (AU converted via AU_KM). */
   readonly semiMajorAxisKm: number;
   readonly orbitParams: OrbitParams;
-  /** Scene radius at which the body and its orbit line are drawn. */
-  readonly ringSceneRadius: number;
+  /** Scene radius at which the body and its orbit line are drawn. Mutable so
+   * scale-mode changes can refresh it (see recomputeRingRadius). */
+  ringSceneRadius: number;
 
   private scale: ScaleManager;
   /** Reused to avoid per-frame allocation. */
   private readonly tmp = new THREE.Vector3();
   /** Saturn ring bands (child meshes of the star's/sphere's group). */
   private readonly rings: THREE.Mesh[] = [];
+  /** Body radius used when the current Saturn ring geometry was built. */
+  private saturnRingAnchorR = 0;
 
   constructor(
     data: CelestialBodyData,
@@ -58,7 +61,7 @@ export class CelestialBody {
       inclinationDeg: data.inclinationDeg ?? 0,
       initialPhaseDeg: seedPhaseDeg(data.id),
     };
-    this.ringSceneRadius = scale.distance(this.semiMajorAxisKm);
+    this.ringSceneRadius = this.computeRingSceneRadius();
 
     this.group = new THREE.Group();
     this.group.name = data.id;
@@ -79,6 +82,7 @@ export class CelestialBody {
    */
   private addSaturnRings(): void {
     const R = this.scale.radius(this.data.radiusKm);
+    this.saturnRingAnchorR = R;
     const saturnRadiusKm = 58_232; // dataset radiusKm; used as the scale anchor
     const toScene = (km: number) => R * (km / saturnRadiusKm);
     const bands = [
@@ -144,6 +148,47 @@ export class CelestialBody {
     const r = this.ringSceneRadius;
     this.tmp.set((p.x / len) * r, (p.y / len) * r, (p.z / len) * r);
     this.group.position.copy(this.tmp);
+  }
+
+  /**
+   * Heliocentric bodies scale by the mode-aware global distance mapping; moons
+   * use the always-local mapping so focus re-anchoring never distorts their
+   * parent-relative orbits. Shared with OrbitRenderer so body and ring agree.
+   */
+  private computeRingSceneRadius(): number {
+    return this.data.type === "moon"
+      ? this.scale.localDistance(this.semiMajorAxisKm)
+      : this.scale.distance(this.semiMajorAxisKm);
+  }
+
+  /** Re-derive the orbit-ring radius from the live scale (after a mode change). */
+  recomputeRingRadius(): void {
+    this.ringSceneRadius = this.computeRingSceneRadius();
+  }
+
+  /** Current drawn sphere radius in scene units (used for labels/focus framing). */
+  get sceneRadius(): number {
+    const params = (this.mesh.geometry as THREE.SphereGeometry).parameters;
+    return typeof params.radius === "number" && Number.isFinite(params.radius)
+      ? params.radius
+      : 1;
+  }
+
+  /**
+   * Rebuild the sphere geometry (and rescale any Saturn rings) to match the
+   * live size mode. Disposes the old geometry so GPU memory isn't leaked.
+   */
+  rebuildSphereRadius(): void {
+    const r = this.scale.radius(this.data.radiusKm);
+    const geo = new THREE.SphereGeometry(r, 24, 16);
+    (this.mesh.geometry as THREE.BufferGeometry).dispose();
+    this.mesh.geometry = geo;
+    if (this.rings.length > 0) {
+      const anchor = this.saturnRingAnchorR > 0 ? this.saturnRingAnchorR : r;
+      const factor = r / anchor;
+      for (const ring of this.rings) ring.scale.multiplyScalar(factor);
+      this.saturnRingAnchorR = r;
+    }
   }
 
   /** Release GPU resources owned by this body (geometry + material). */

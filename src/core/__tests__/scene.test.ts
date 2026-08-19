@@ -1,6 +1,12 @@
 import { describe, it, expect } from "vitest";
 import * as THREE from "three";
-import { SolarSystem, updateBodyPositions } from "../SolarSystem";
+import {
+  SolarSystem,
+  updateBodyPositions,
+  refreshViews,
+  setOrbitsVisibility,
+  setMoonsVisibility,
+} from "../SolarSystem";
 import { ScaleManager, AU_KM } from "../ScaleManager";
 import { SOLAR_SYSTEM } from "../../data/solarSystemData";
 import type { CelestialBodyData } from "../../data/types";
@@ -133,5 +139,68 @@ describe("SolarSystem.buildViews", () => {
     // The world offset from the planet centre equals the moon's local position
     // magnitude (its planetocentric distance).
     expect(offset).toBeCloseTo(moon.group.position.length(), 4);
+  });
+});
+
+function expectBodiesOnRings(views: SolarSystemViewsLike): void {
+  for (const line of views.lines) {
+    const attr = line.geometry.getAttribute("position") as THREE.BufferAttribute;
+    const ringR = Math.hypot(attr.getX(0), attr.getY(0), attr.getZ(0));
+    const body = views.byId.get(line.userData.bodyId as string);
+    expect(body!.group.position.length()).toBeCloseTo(ringR, 4);
+  }
+}
+
+/** Structural subset of SolarSystemViews used by refreshViews + visibility utils. */
+type SolarSystemViewsLike = ReturnType<typeof SolarSystem.buildViews>;
+
+describe("SolarSystem scale refresh + visibility toggles", () => {
+  it("refreshViews keeps bodies on their rings after a distance-mode change", () => {
+    const scale = new ScaleManager();
+    const views = SolarSystem.buildViews(scale);
+    updateBodyPositions(views, 10);
+    scale.setDistanceMode("linear");
+    refreshViews(views, 10);
+    expectBodiesOnRings(views);
+  });
+
+  it("focus-mode refresh keeps moon orbits local and compact", () => {
+    const scale = new ScaleManager();
+    const views = SolarSystem.buildViews(scale);
+    updateBodyPositions(views, 20);
+    scale.setDistanceMode("focus");
+    const jupiter = SOLAR_SYSTEM.find((b) => b.id === "jupiter")!;
+    scale.setFocusKm(semiMajorAxisKm(jupiter));
+    refreshViews(views, 20);
+    expectBodiesOnRings(views);
+    const earth = views.byId.get("earth")!;
+    const moon = views.byId.get("moon")!;
+    expect(moon.group.position.length()).toBeLessThan(earth.group.position.length() * 0.5);
+  });
+
+  it("setOrbitsVisibility hides and restores every orbit line", () => {
+    const views = SolarSystem.buildViews(new ScaleManager());
+    setOrbitsVisibility(views, false);
+    for (const line of views.lines) expect(line.visible).toBe(false);
+    setOrbitsVisibility(views, true);
+    for (const line of views.lines) expect(line.visible).toBe(true);
+  });
+
+  it("setMoonsVisibility hides moon bodies + moon lines only", () => {
+    const views = SolarSystem.buildViews(new ScaleManager());
+    setMoonsVisibility(views, false);
+    for (const body of views.bodies) {
+      if (body.data.type === "moon") {
+        expect(body.group.visible).toBe(false);
+      } else {
+        expect(body.group.visible).toBe(true);
+      }
+    }
+    for (const line of views.lines) {
+      const owner = views.byId.get(line.userData.bodyId as string)!;
+      expect(line.visible).toBe(owner.data.type !== "moon");
+    }
+    setMoonsVisibility(views, true);
+    for (const body of views.bodies) expect(body.group.visible).toBe(true);
   });
 });

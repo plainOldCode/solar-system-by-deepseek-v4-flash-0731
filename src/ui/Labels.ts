@@ -25,14 +25,36 @@ export class Labels {
   private sprites = new Map<string, THREE.Sprite>();
   private textures: THREE.CanvasTexture[] = [];
   private enabled = true;
+  private readonly moonIds = new Set<string>();
+  private readonly bodyList: readonly CelestialBody[];
 
   constructor(bodies: readonly CelestialBody[]) {
+    this.bodyList = bodies;
     for (const body of bodies) {
+      if (body.data.type === "moon") this.moonIds.add(body.data.id);
       const sprite = this.createSprite(body.data);
-      const sceneRadius = meshSceneRadius(body.mesh);
+      const sceneRadius = body.sceneRadius;
       sprite.position.set(0, sceneRadius * 1.7 + 0.45, 0);
       body.group.add(sprite);
       this.sprites.set(body.data.id, sprite);
+    }
+  }
+
+  /** Re-position every sprite above its body's current (possibly resized) sphere. */
+  refreshPositions(): void {
+    for (const body of this.bodyList) {
+      const sprite = this.sprites.get(body.data.id);
+      if (!sprite) continue;
+      const sceneRadius = body.sceneRadius;
+      sprite.position.set(0, sceneRadius * 1.7 + 0.45, 0);
+    }
+  }
+
+  /** Show/hide only moon labels (body-size toggle keeps planet labels intact). */
+  setMoonsVisible(visible: boolean): void {
+    for (const id of this.moonIds) {
+      const sprite = this.sprites.get(id);
+      if (sprite) sprite.visible = visible && this.enabled;
     }
   }
 
@@ -124,12 +146,4 @@ export class Labels {
     this.textures = [];
     this.sprites.clear();
   }
-}
-
-/** Read the scene radius the body mesh was built with. */
-function meshSceneRadius(mesh: THREE.Mesh): number {
-  const params = (mesh.geometry as THREE.SphereGeometry).parameters;
-  return typeof params.radius === "number" && Number.isFinite(params.radius)
-    ? params.radius
-    : 1;
 }

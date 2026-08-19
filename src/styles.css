@@ -256,6 +256,25 @@ canvas {
   outline-offset: -2px;
 }
 
+/* Scale-mode + visibility selects (distance / size pickers in the control bar). */
+.ctrl-select {
+  height: 32px;
+  max-width: 96px;
+  padding: 0 8px;
+  font-size: 13px;
+  color: var(--text);
+  background: rgba(10, 16, 28, 0.9);
+  border: 1px solid rgba(127, 178, 255, 0.4);
+  border-radius: 8px;
+}
+.ctrl-select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+.ctrl-group-list .ctrl-label {
+  white-space: nowrap;
+}
+
 .kb-hint {
   position: absolute;
   left: calc(20px + env(safe-area-inset-left, 0px));
@@ -400,6 +419,9 @@ select {
     width: 44px;
   }
   .ctrl-group-focus select {
+    height: 44px;
+  }
+  .ctrl-select {
     height: 44px;
   }
 }

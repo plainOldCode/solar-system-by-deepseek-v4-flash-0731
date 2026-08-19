@@ -4,6 +4,7 @@
  * without a DOM; the InfoPanel class just injects the result into the DOM.
  */
 import type { CelestialBodyData } from "../data/types";
+import type { DistanceScaleMode, RadiusScaleMode } from "../core/ScaleManager";
 
 /** Korean label for each body kind (matches `BodyType`). */
 export const TYPE_LABEL_KO: Record<string, string> = {
@@ -11,6 +12,20 @@ export const TYPE_LABEL_KO: Record<string, string> = {
   planet: "행성",
   "dwarf-planet": "왜행성",
   moon: "위성",
+};
+
+/** Korean labels for the selectable distance scale modes (§4). */
+export const DISTANCE_MODE_LABEL_KO: Record<DistanceScaleMode, string> = {
+  log: "로그 스케일",
+  linear: "선형 스케일",
+  focus: "포커스 스케일",
+};
+
+/** Korean labels for the selectable body-size modes (§6). */
+export const SIZE_MODE_LABEL_KO: Record<RadiusScaleMode, string> = {
+  enhanced: "강화 표시 (기본)",
+  relative: "상대 크기",
+  uniform: "균일 마커",
 };
 
 function fmt(n: number | undefined, digits = 3): string {

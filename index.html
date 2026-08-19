@@ -54,6 +54,57 @@
           <button id="speed-reset" class="ctrl-btn" aria-label="시간과 속도 초기화">초기화</button>
         </div>
 
+        <div class="ctrl-group ctrl-group-list">
+          <label class="ctrl-label" for="dist-mode">거리</label>
+          <select id="dist-mode" class="ctrl-select" aria-label="거리 스케일 모드">
+            <option value="log">로그</option>
+            <option value="linear">선형</option>
+            <option value="focus">포커스</option>
+          </select>
+        </div>
+
+        <div class="ctrl-group ctrl-group-list">
+          <label class="ctrl-label" for="size-mode">크기</label>
+          <select id="size-mode" class="ctrl-select" aria-label="천체 크기 모드">
+            <option value="enhanced">강화</option>
+            <option value="relative">상대</option>
+            <option value="uniform">균일</option>
+          </select>
+        </div>
+
+        <div class="ctrl-group">
+          <button
+            id="ctrl-orbits"
+            class="ctrl-btn"
+            aria-pressed="true"
+            title="궤도 표시/숨기기"
+          >
+            궤도 숨기기
+          </button>
+        </div>
+
+        <div class="ctrl-group">
+          <button
+            id="ctrl-moons"
+            class="ctrl-btn"
+            aria-pressed="true"
+            title="위성 표시/숨기기"
+          >
+            위성 숨기기
+          </button>
+        </div>
+
+        <div class="ctrl-group">
+          <button
+            id="ctrl-stars"
+            class="ctrl-btn"
+            aria-pressed="true"
+            title="별 필드 표시/숨기기"
+          >
+            별 숨기기
+          </button>
+        </div>
+
         <div class="ctrl-group">
           <button id="ctrl-labels" class="ctrl-btn" aria-pressed="true" title="이름표 표시/숨기기">
             ✕ 레이블 숨기기

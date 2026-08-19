@@ -4,14 +4,15 @@
  *
  * It does NOT re-implement formulas: it samples `orbitalPosition` (which holds
  * the Keplerian math) across one full period and places each sample at the
- * scene radius produced by `ScaleManager.distance` for the body's real
- * semi-major axis. Because both the ring and the moving body use the same
- * mapping, the sphere always travels exactly along its drawn ring.
+ * ring scene radius produced by the body's scale mapping. Both the ring and
+ * the moving body use the same radius, so the sphere always travels exactly
+ * along its drawn ring. The ring radius is passed in (not derived internally)
+ * so moons can use their local scale and heliocentric bodies their global
+ * scale without duplicating that choice here.
  */
 
 import * as THREE from "three";
 import { orbitalPosition, type OrbitParams } from "./orbit";
-import type { ScaleManager } from "./ScaleManager";
 
 /** Number of segments used to tessellate an orbit path. */
 export const ORBIT_SEGMENTS = 256;
@@ -22,32 +23,18 @@ export const ORBIT_COLOR = "#7788aa";
 
 export class OrbitRenderer {
   /**
-   * Build a closed THREE.Line orbit path at the log-scaled radius for the
-   * body's real semi-major axis. The line is centred on the parent body's
-   * local origin, so it is attached to the parent's group (or the scene root
-   * for heliocentric bodies).
+   * Build a closed THREE.Line orbit path at the given scene radius for the
+   * body's real semi-major-axis eccentricity/inclination. The line is centred
+   * on the parent body's local origin, so it is attached to the parent's group
+   * (or the scene root for heliocentric bodies).
    */
   static buildLine(
     orbit: OrbitParams,
-    scale: Pick<ScaleManager, "distance">,
+    ringSceneRadius: number,
     color: string = ORBIT_COLOR,
     bodyId?: string,
   ): THREE.Line {
-    const period = orbit.periodDays > 0 ? orbit.periodDays : 1;
-    const ringSceneR = scale.distance(orbit.semiMajorAxisKm);
-    const pts: THREE.Vector3[] = new Array(ORBIT_SEGMENTS + 1);
-    for (let i = 0; i <= ORBIT_SEGMENTS; i++) {
-      const t = (i / ORBIT_SEGMENTS) * period;
-      const p = orbitalPosition(orbit, t).position;
-      const len = Math.hypot(p.x, p.y, p.z) || 1;
-      pts[i] = new THREE.Vector3(
-        (p.x / len) * ringSceneR,
-        (p.y / len) * ringSceneR,
-        (p.z / len) * ringSceneR,
-      );
-    }
-
-    const geo = new THREE.BufferGeometry().setFromPoints(pts);
+    const geo = OrbitRenderer.buildGeometry(orbit, ringSceneRadius);
     const mat = new THREE.LineBasicMaterial({
       color,
       transparent: true,
@@ -57,6 +44,41 @@ export class OrbitRenderer {
     line.name = "orbit";
     line.userData.bodyId = bodyId;
     return line;
+  }
+
+  /** Build the orbit path BufferGeometry closed around `ringSceneRadius`. */
+  static buildGeometry(
+    orbit: OrbitParams,
+    ringSceneRadius: number,
+  ): THREE.BufferGeometry {
+    const period = orbit.periodDays > 0 ? orbit.periodDays : 1;
+    const pts: THREE.Vector3[] = new Array(ORBIT_SEGMENTS + 1);
+    for (let i = 0; i <= ORBIT_SEGMENTS; i++) {
+      const t = (i / ORBIT_SEGMENTS) * period;
+      const p = orbitalPosition(orbit, t).position;
+      const len = Math.hypot(p.x, p.y, p.z) || 1;
+      pts[i] = new THREE.Vector3(
+        (p.x / len) * ringSceneRadius,
+        (p.y / len) * ringSceneRadius,
+        (p.z / len) * ringSceneRadius,
+      );
+    }
+    return new THREE.BufferGeometry().setFromPoints(pts);
+  }
+
+  /**
+   * Re-tessellate an existing orbit line's geometry in place for a new
+   * ring radius (scale-mode change). The THREE.Line object is preserved so
+   * identity, parentage, userData and raycast selection all survive.
+   */
+  static replaceGeometry(
+    line: THREE.Line,
+    orbit: OrbitParams,
+    ringSceneRadius: number,
+  ): void {
+    const geo = OrbitRenderer.buildGeometry(orbit, ringSceneRadius);
+    line.geometry.dispose();
+    line.geometry = geo;
   }
 
   /** Release GPU resources held by a line created by {@link buildLine}. */

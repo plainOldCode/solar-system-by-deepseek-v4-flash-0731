@@ -1,6 +1,7 @@
 /**
  * ScaleManager — logarithmic / linear scaling of real astronomical distances
- * and radii into scene units.
+ * and radii into scene units, plus a focus distance mode and three body-size
+ * modes.
  *
  * Pure, Three.js-free math so it is trivially unit-testable and reusable by
  * both the Three.js renderer and the UI (readouts, minimap). Guarantees:
@@ -11,18 +12,26 @@
  *
  * Radial (distance-from-parent) and size (radius) mappings are kept separate
  * so each can use its own mode and constants.
+ *
+ * Heliocentric (planet/dwarf) bodies use `distance`; moon orbits use
+ * `localDistance` so the focus mode re-anchoring of the heliocentric scale can
+ * never blow up planetocentric moon orbits. This keeps the moon-system local
+ * scale constant regardless of the active distance mode.
  */
 
 /** One astronomical unit in kilometres (IAU 2012 def). */
 export const AU_KM = 149_597_870.7;
 
-export type DistanceScaleMode = "log" | "linear";
-export type RadiusScaleMode = "log" | "linear";
+/** Selectable distance modes (prompt §4): log (default), linear, focus. */
+export type DistanceScaleMode = "log" | "linear" | "focus";
+
+/** Selectable body-size modes (prompt §6): enhanced (default), relative, uniform. */
+export type RadiusScaleMode = "enhanced" | "relative" | "uniform";
 
 export interface ScaleManagerOptions {
   /** Distance mapping mode. Default "log". */
   distanceScale?: DistanceScaleMode;
-  /** Radius mapping mode. Default "log". */
+  /** Body-size mapping mode. Default "enhanced". */
   radiusScale?: RadiusScaleMode;
   /**
    * Log distance: scene distance = distanceGain * log10(1 + km/distanceFloorKm).
@@ -52,11 +61,31 @@ export interface ScaleManagerOptions {
   maxSceneRadius?: number;
   /** Linear radius gain, scene units per km. Chosen so Sun maps to sunSceneRadius. */
   linearRadiusGain?: number;
+
+  /**
+   * Focus mode only — the scene radius the focused body's real distance maps
+   * to exactly (the local "centre" of the focused planetary system).
+   */
+  focusTargetRadius?: number;
+  /** Focus mode — scene-units range either side of the target at saturation. */
+  focusMagnify?: number;
+  /** Focus mode — log-decades over which the magnification acts (tanh scale). */
+  focusSpreadDecades?: number;
+
+  /** Relative size mode — visibility floor so tiny bodies stay visible. */
+  relativeMinSceneRadius?: number;
+  /** Uniform size mode — marker radius for every non-Sun body. */
+  uniformMarkerRadius?: number;
+  /** Uniform size mode — marker radius for the Sun (kept a touch larger). */
+  uniformSunMarkerRadius?: number;
+
+  /** Internal: reference km (heliocentric) the focus mode centres on. 0 = none. */
+  focusKm?: number;
 }
 
 const DEFAULTS = {
   distanceScale: "log" as DistanceScaleMode,
-  radiusScale: "log" as RadiusScaleMode,
+  radiusScale: "enhanced" as RadiusScaleMode,
   distanceGain: 5.0,
   distanceFloorKm: 100_000,
   linearDistanceGain: 1e-9,
@@ -65,6 +94,13 @@ const DEFAULTS = {
   minSceneRadius: 0.25,
   maxSceneRadius: 10.0,
   linearRadiusGain: 2.2 / 696_340.0, // Sun 696340 km -> sunSceneRadius (2.2) scene units
+  focusTargetRadius: 45,
+  focusMagnify: 20,
+  focusSpreadDecades: 0.6,
+  relativeMinSceneRadius: 0.1,
+  uniformMarkerRadius: 1.0,
+  uniformSunMarkerRadius: 1.5,
+  focusKm: 0,
 };
 
 const SUN_RADIUS_KM = 696_340; // reference anchor for log radius scale
@@ -95,9 +131,17 @@ export class ScaleManager {
   get radiusMode(): RadiusScaleMode {
     return this._opts.radiusScale;
   }
+  /** Alias for `radiusMode` — the user-facing "size" scale. */
+  get sizeMode(): RadiusScaleMode {
+    return this._opts.radiusScale;
+  }
   /** Configured floor scene radius (visibility floor for tiny moons). */
   get minSceneRadius(): number {
     return this._opts.minSceneRadius;
+  }
+  /** Current focus reference km in the distance mapping (0 = none). */
+  get focusKm(): number {
+    return this._opts.focusKm;
   }
 
   setDistanceMode(mode: DistanceScaleMode): void {
@@ -106,42 +150,109 @@ export class ScaleManager {
   setRadiusMode(mode: RadiusScaleMode): void {
     this._opts.radiusScale = mode;
   }
+  /**
+   * Set the heliocentric reference for focus mode. Pass 0/null to disable the
+   * focused centre (focus mode then falls back to log). Plain data, computed
+   * by the interaction layer from the selected body.
+   */
+  setFocusKm(km: number | null): void {
+    this._opts.focusKm =
+      typeof km === "number" && Number.isFinite(km) && km > 0 ? km : 0;
+  }
 
   /**
-   * Map an actual distance (km) from the parent body to scene units.
+   * Map an actual heliocentric distance (km) from the Sun to scene units.
    * Non-positive input always gives 0 so origin bodies rest at the parent.
-   * Finite for any finite `km`. Monotonic non-decreasing in `km`.
+   * Finite for any finite `km`. Monotonic non-decreasing in `km` in every mode.
    */
   distance(km: number): number {
     const d = Number.isFinite(km) && km > 0 ? km : 0;
     if (d === 0) return 0;
-    if (this._opts.distanceScale === "linear") {
-      return Math.max(d * this._opts.linearDistanceGain, 0);
+    switch (this._opts.distanceScale) {
+      case "linear":
+        return Math.max(d * this._opts.linearDistanceGain, 0);
+      case "focus":
+        return this.focusDistance(d);
+      default:
+        return this.logDistance(d);
     }
-    // log: 1 + d/floor → log10; d=0 handled above; large d stays finite.
-    return this._opts.distanceGain * Math.log10(1 + d / this._opts.distanceFloorKm);
+  }
+
+  /**
+   * Map a planetocentric moon distance (km from its parent planet) to scene
+   * units. Always uses the plain log mapping — never the focus re-anchor — so
+   * moon orbits stay compact and parent-local no matter the global mode.
+   */
+  localDistance(km: number): number {
+    const d = Number.isFinite(km) && km > 0 ? km : 0;
+    if (d === 0) return 0;
+    return this.logDistance(d);
   }
 
   /**
    * Map an actual radius (km) to a scene radius. Unknown / zero radii safely
    * return a small floor radius; the Sun radius maps exactly to
-   * sunSceneRadius. Monotonic non-decreasing in `km`.
+   * sunSceneRadius in every mode. Monotonic non-decreasing in `km`.
    */
   radius(km: number): number {
     const r = Number.isFinite(km) && km > 0 ? km : 0;
     if (r === 0) return clampFinite(DEFAULTS.minSceneRadius, 0, this._opts.minSceneRadius * 2);
     const low = this._opts.minSceneRadius;
     const high = this._opts.maxSceneRadius;
-    if (this._opts.radiusScale === "linear") {
-      return clampFinite(r * this._opts.linearRadiusGain, low, high);
+    switch (this._opts.radiusScale) {
+      case "relative":
+        // Proportional to real radius (gain anchored so the Sun maps exactly
+        // to sunSceneRadius), floored so tiny bodies stay visible. This is the
+        // "stronger emphasis on real size ratios" mode — giant planets clearly
+        // outgrow terrestrial bodies, which fall to the visibility floor.
+        return clampFinite(
+          r * this._opts.linearRadiusGain,
+          this._opts.relativeMinSceneRadius,
+          high,
+        );
+      case "uniform":
+        // "Uniform Markers": every body is a similar marker size; the Sun is
+        // kept only slightly larger so it stays recognizable. Satellite/planet
+        // distinction is conveyed by colour/emissivity, not size.
+        return clampFinite(
+          r >= SUN_RADIUS_KM
+            ? this._opts.uniformSunMarkerRadius
+            : this._opts.uniformMarkerRadius,
+          low,
+          high,
+        );
+      default: {
+        // Enhanced Visibility (default): log radius. Normalize log1p(radius)
+        // by log1p(Sun) so the Sun maps exactly to sunSceneRadius, then raise
+        // the in-[0,1] ratio to `radiusCompression` (>=1) so planets/moons
+        // shrink toward the Sun and stay clearly sub-dominant while ordering
+        // stays monotonic. Finite for all r>0, deterministic, monotonic.
+        const ratio = Math.log1p(r) / Math.log1p(SUN_RADIUS_KM);
+        const compressed = Math.pow(ratio, this._opts.radiusCompression);
+        return clampFinite(this._opts.sunSceneRadius * compressed, low, high);
+      }
     }
-    // Log radius: normalize log1p(radius) by log1p(Sun) so the Sun maps
-    // exactly to sunSceneRadius, then raise the in-[0,1] ratio to
-    // `radiusCompression` (≥1) so planets/moons shrink toward the Sun and
-    // stay clearly sub-dominant while ordering stays monotonic. Finite for
-    // all r>0, deterministic, monotonic non-decreasing.
-    const ratio = Math.log1p(r) / Math.log1p(SUN_RADIUS_KM);
-    const compressed = Math.pow(ratio, this._opts.radiusCompression);
-    return clampFinite(this._opts.sunSceneRadius * compressed, low, high);
+  }
+
+  /** Plain log-distance mapping (shared by local + global log modes). */
+  private logDistance(km: number): number {
+    return this._opts.distanceGain * Math.log10(1 + km / this._opts.distanceFloorKm);
+  }
+
+  /**
+   * Focus mode: local scale centred on the selected planetary system. Re-anchor
+   * the heliocentric log scale onto the focused body's real distance so that
+   * body maps exactly to `focusTargetRadius`; tanh spreads nearby neighbours
+   * apart (they stay readable) while bodies far from the focus compress toward
+   * the saturation edges. Monotonic in km; smooth; deterministic.
+   */
+  private focusDistance(km: number): number {
+    const f = this._opts.focusKm;
+    if (!(f > 0)) return this.logDistance(km);
+    const t = Math.log10(Math.max(km, 1e-9) / f);
+    const y =
+      this._opts.focusTargetRadius +
+      this._opts.focusMagnify * Math.tanh(t / this._opts.focusSpreadDecades);
+    return Math.max(y, 0);
   }
 }

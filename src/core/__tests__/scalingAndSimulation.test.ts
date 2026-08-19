@@ -139,6 +139,82 @@ describe("ScaleManager", () => {
   });
 });
 
+describe("ScaleManager distance modes (log / linear / focus)", () => {
+  it("focus mode centres the selected system's distance exactly at focusTargetRadius", () => {
+    const s = new ScaleManager({ distanceScale: "focus", focusTargetRadius: 48 });
+    s.setFocusKm(distanceKm("earth"));
+    expect(s.distance(distanceKm("earth"))).toBeCloseTo(48, 3);
+  });
+
+  it("focus mode stays monotonic and order-preserving across planets", () => {
+    const s = new ScaleManager({ distanceScale: "focus" });
+    s.setFocusKm(distanceKm("jupiter"));
+    const order = [
+      "mercury", "venus", "earth", "mars", "jupiter", "saturn", "uranus", "neptune", "pluto",
+    ];
+    const values = order.map((id) => s.distance(distanceKm(id)));
+    for (let i = 1; i < values.length; i++) {
+      expect(values[i]).toBeGreaterThan(values[i - 1]);
+    }
+  });
+
+  it("focus mode with no reference falls back to log", () => {
+    const s = new ScaleManager({ distanceScale: "focus" });
+    const log = new ScaleManager({ distanceScale: "log" });
+    expect(s.distance(distanceKm("earth"))).toBeCloseTo(log.distance(distanceKm("earth")), 6);
+  });
+
+  it("setFocusKm(null/0) disables the focused centre", () => {
+    const s = new ScaleManager({ distanceScale: "focus", focusTargetRadius: 48 });
+    s.setFocusKm(0);
+    const log = new ScaleManager({ distanceScale: "log" });
+    expect(s.distance(distanceKm("earth"))).toBe(log.distance(distanceKm("earth")));
+  });
+
+  it("moon local distance is independent of focus mode (moons stay compact)", () => {
+    const log = new ScaleManager();
+    const focus = new ScaleManager({ distanceScale: "focus" });
+    focus.setFocusKm(distanceKm("earth"));
+    const moonKm = distanceKm("moon");
+    expect(focus.localDistance(moonKm)).toBeCloseTo(log.distance(moonKm), 6);
+    // The moon's local orbit must remain far inside the focused planet's ring.
+    expect(focus.localDistance(moonKm)).toBeLessThan(focus.distance(distanceKm("earth")) * 0.5);
+  });
+});
+
+describe("ScaleManager size modes (enhanced / relative / uniform)", () => {
+  it("relative mode keeps the Sun dominant and makes giants outgrow terrestrials", () => {
+    const s = new ScaleManager({ radiusScale: "relative" });
+    const sun = s.radius(bodyOf("sun").radiusKm);
+    const jup = s.radius(bodyOf("jupiter").radiusKm);
+    const ear = s.radius(bodyOf("earth").radiusKm);
+    expect(sun).toBeGreaterThan(jup);
+    expect(jup).toBeGreaterThan(ear);
+    expect(s.radius(bodyOf("earth").radiusKm)).toBeGreaterThanOrEqual(0.1);
+  });
+
+  it("uniform mode renders similar marker sizes (only the Sun differs)", () => {
+    const s = new ScaleManager({ radiusScale: "uniform" });
+    const earth = s.radius(bodyOf("earth").radiusKm);
+    const jup = s.radius(bodyOf("jupiter").radiusKm);
+    const moon = s.radius(bodyOf("moon").radiusKm);
+    const sun = s.radius(bodyOf("sun").radiusKm);
+    expect(earth).toBe(jup);
+    expect(moon).toBe(earth);
+    expect(sun).toBeGreaterThan(earth);
+  });
+
+  it("enhanced (default) is unchanged: Sun dominant, sub-dominant planets", () => {
+    const s = new ScaleManager();
+    expect(s.sizeMode).toBe("enhanced");
+    const sun = s.radius(bodyOf("sun").radiusKm);
+    expect(s.radius(bodyOf("jupiter").radiusKm)).toBeLessThan(sun);
+    expect(s.radius(bodyOf("earth").radiusKm)).toBeLessThan(
+      s.radius(bodyOf("jupiter").radiusKm),
+    );
+  });
+});
+
 describe("SimulationClock", () => {
   it("advances deterministically", () => {
     const c = new SimulationClock();

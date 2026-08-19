@@ -17,6 +17,8 @@
 import * as THREE from "three";
 import { SolarSystem } from "../core/SolarSystem";
 import { CameraRig } from "../core/CameraRig";
+import { ScaleManager } from "../core/ScaleManager";
+import type { DistanceScaleMode, RadiusScaleMode } from "../core/ScaleManager";
 import { Labels } from "./Labels";
 import { ControlPanel, type ControlPanelHandlers } from "./ControlPanel";
 import { InfoPanel } from "./InfoPanel";
@@ -29,7 +31,12 @@ import {
   prevSelection,
   resolveBodyPick,
 } from "./selectionModel";
-import { bodyAlt, formatSimDays } from "./format";
+import {
+  bodyAlt,
+  formatSimDays,
+  DISTANCE_MODE_LABEL_KO,
+  SIZE_MODE_LABEL_KO,
+} from "./format";
 
 // Speed ladder in simulated DAYS advanced per real second. The engine's clock
 // accumulates simulated *seconds*, so each rung is multiplied by 86 400 when
@@ -59,10 +66,14 @@ export class AppController {
   private readonly raycaster = new THREE.Raycaster();
   private readonly pointer = new THREE.Vector2();
 
+  private readonly scale: ScaleManager;
   private hoveredId: string | null = null;
   private selectedId: string | null = null;
   private speed = DEFAULT_SPEED_DAYS; // stored in days-per-real-second
   private labelsDesired = true; // user's independent in-scene label preference
+  private orbitsVisible = true;
+  private moonsVisible = true;
+  private starsVisible = true;
   private ring: THREE.Group | null = null;
 
   constructor(container: HTMLElement) {
@@ -73,8 +84,10 @@ export class AppController {
     this.rig = new CameraRig(container, width / height, {
       homePosition: new THREE.Vector3(0, 28, 42),
     });
+    this.scale = new ScaleManager();
     this.system = new SolarSystem(container, {
       camera: this.rig.camera,
+      scale: this.scale,
       onFrame: (timeDays) => {
         this.rig.update();
         this.renderClock(timeDays);
@@ -107,6 +120,11 @@ export class AppController {
     this.applySpeedUI();
     this.control.setPlaying(true);
     this.control.setLabelsVisible(true);
+    this.control.setDistanceMode(this.system.distanceMode);
+    this.control.setSizeMode(this.system.sizeMode);
+    this.control.setOrbitsVisible(this.orbitsVisible);
+    this.control.setMoonsVisible(this.moonsVisible);
+    this.control.setStarsVisible(this.starsVisible);
     this.bindEvents();
     this.clearSelection(false);
 
@@ -134,6 +152,11 @@ export class AppController {
       onTogglePlay: () => this.togglePlay(),
       onSpeedStep: (d) => this.stepSpeed(d),
       onSpeedReset: () => this.resetSimulation(),
+      onDistanceMode: (mode) => this.applyDistanceMode(mode),
+      onSizeMode: (mode) => this.applySizeMode(mode),
+      onToggleOrbits: () => this.toggleOrbits(),
+      onToggleMoons: () => this.toggleMoons(),
+      onToggleStars: () => this.toggleStars(),
       onToggleLabels: () => {
         this.labelsDesired = !this.labels.enabledState;
         this.labels.setEnabled(this.labelsDesired);
@@ -181,6 +204,8 @@ export class AppController {
         .addScaledVector(dir, dist);
       this.rig.controls.update();
     }
+    // Keep the focus-distance-mode centre aligned to the newly selected system.
+    this.system.setFocusKm(this.focusReferenceKm());
     this.announce(`${body.data.nameKo} 선택됨. ${bodyAlt(body.data)}.`);
   }
 
@@ -195,6 +220,8 @@ export class AppController {
       this.ring = null;
     }
     this.rig.clearFollow();
+    // Deselecting also drops any focus-distance-mode centre (falls back to log).
+    this.system.setFocusKm(null);
     if (home) {
       this.rig.home();
       this.announce("선택을 해제하고 태양 중심 화면으로 돌아갑니다.");
@@ -349,9 +376,72 @@ export class AppController {
     this.system.clock.setSpeed(this.speed * SECONDS_PER_DAY);
   }
 
-  /** Reflect the running simulation clock in the HUD date read-out. */
+  /**
+   * Reflect the running simulation clock in the HUD date read-out. */
   private renderClock(timeDays: number): void {
     this.clockEl.textContent = `시뮬레이션 ${formatSimDays(timeDays)}`;
+  }
+
+  /* ── scale-mode & visibility controls ──────────────────────────── */
+
+  /** Switch the global distance mapping (log / linear / focus). */
+  private applyDistanceMode(mode: DistanceScaleMode): void {
+    // Make sure the focus reference tracks the current selection before
+    // activating focus mode, and that focusing a new selection recentres it.
+    this.system.setFocusKm(this.focusReferenceKm());
+    this.system.setDistanceMode(mode); // (re)builds rings + positions
+    this.control.setDistanceMode(mode);
+    this.announce(`거리 스케일: ${DISTANCE_MODE_LABEL_KO[mode]}`);
+  }
+
+  /** Switch the body-size mapping (enhanced / relative / uniform). */
+  private applySizeMode(mode: RadiusScaleMode): void {
+    this.system.setSizeMode(mode);
+    this.labels.refreshPositions(); // sprites ride above the resized spheres
+    if (this.selectedId) {
+      const body = this.system.views.byId.get(this.selectedId);
+      if (body) this.attachRing(body); // selection ring tracks the new sphere size
+    }
+    this.control.setSizeMode(mode);
+    this.announce(`천체 크기 모드: ${SIZE_MODE_LABEL_KO[mode]}`);
+  }
+
+  private toggleOrbits(): void {
+    this.orbitsVisible = !this.orbitsVisible;
+    this.system.setOrbitsVisible(this.orbitsVisible);
+    this.control.setOrbitsVisible(this.orbitsVisible);
+    this.announce(this.orbitsVisible ? "궤도 표시" : "궤도 숨김");
+  }
+
+  private toggleMoons(): void {
+    this.moonsVisible = !this.moonsVisible;
+    this.system.setMoonsVisible(this.moonsVisible);
+    this.labels.setMoonsVisible(this.moonsVisible);
+    this.control.setMoonsVisible(this.moonsVisible);
+    this.announce(this.moonsVisible ? "위성 표시" : "위성 숨김");
+  }
+
+  private toggleStars(): void {
+    this.starsVisible = !this.starsVisible;
+    this.system.setStarsVisible(this.starsVisible);
+    this.control.setStarsVisible(this.starsVisible);
+    this.announce(this.starsVisible ? "별 필드 표시" : "별 필드 숨김");
+  }
+
+  /**
+   * Focus reference for the focus distance mode: the heliocentric km of the
+   * selected planetary system. A selected moon recentres on its parent planet;
+   * the Sun / no selection disables the focused centre (→ log fallback).
+   */
+  private focusReferenceKm(): number | null {
+    if (!this.selectedId) return null;
+    const body = this.system.views.byId.get(this.selectedId);
+    if (!body) return null;
+    if (body.data.type === "moon" && body.data.parentId) {
+      const parent = this.system.views.byId.get(body.data.parentId);
+      return parent && parent.semiMajorAxisKm > 0 ? parent.semiMajorAxisKm : null;
+    }
+    return body.semiMajorAxisKm > 0 ? body.semiMajorAxisKm : null;
   }
 
   /**
